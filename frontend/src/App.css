@@ -1,0 +1,58 @@
+.app-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  text-align: center;
+}
+
+.menu {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.menu-button {
+  padding: 12px 18px;
+  font-size: 16px;
+  border-radius: 10px;
+  background-color: #fab1a0;
+  color: #000000;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.menu-button:hover {
+  background-color: #fab1a0;
+}
+
+.screen-content {
+  margin-top: 30px;
+  padding: 20px;
+  border: 1px solid #000000;
+  border-radius: 12px;
+  min-height: 200px;
+}
+
+.text-area {
+  width: 100%;
+  max-width: 700px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+}
+
+.result-box {
+  margin-top: 25px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #f5f6ff;
+  border: 1px solid #dcdcff;
+}
+
+/* .logo {
+  width: 150px;
+  margin-bottom: 10px;
+} */
