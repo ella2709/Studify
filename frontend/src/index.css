@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+.ai-text-block {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.ai-text-block p {
+  margin: 4px 0;
+}
+
+.ai-text-block h1,
+.ai-text-block h2,
+.ai-text-block h3 {
+  margin: 10px 0 6px;
+}
+
+.ai-text-block ul {
+  padding-inline-start: 18px;
+}
+
+.ai-text-block p + ul,
+.ai-text-block p + ol {
+  margin-top: 0;
+}
+
+.ai-text-block ul,
+.ai-text-block ol {
+  margin-bottom: 6px;
+}
+
+
+.ai-text-block li {
+  margin-bottom: 2px;
+}
+
+
+.ai-text-block strong {
+  font-weight: 700;
+}

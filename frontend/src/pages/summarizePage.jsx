@@ -1,72 +1,74 @@
 import { useState } from "react";
+import AiTextBlock from "../components/AiTextBlock";
+import messages from "../messages";
+import { summarizeAi } from "../services/aiService";
 
 function SummarizePage() {
-  const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
+  const [basedOnFiles, setBasedOnFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSummarize = async () => {
     try {
       setLoading(true);
       setSummary("");
+      setBasedOnFiles([]);
+      setError("");
 
-      const response = await fetch("/api/ai/summarize", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text,
-        }),
-      });
-
-      const data = await response.json();
-
-      console.log("Backend response:", data);
-
-      if (!response.ok) {
-        setSummary(`Error: ${data.error}`);
-        return;
-      }
-
-      setSummary(data.summary);
-
+      const data = await summarizeAi();
+      setSummary(data.summary || "");
+      setBasedOnFiles(data.basedOnFiles || []);
     } catch (error) {
-      console.error("Frontend error:", error);
-      setSummary(`Frontend error: ${error.message}`);
+      setError(error.message || messages.summarize.error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="screen-content">
+    <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="text-2xl font-bold text-slate-800">
+        {messages.summarize.title}
+      </h2>
+      <p className="mt-2 text-slate-600">
+        {messages.summarize.description}
+      </p>
 
-      <h2>Summary of Study Material</h2>
-      <p>Write a material and the system will create a summary using AI</p>
-
-      <textarea
-        className="text-area"
-        rows="10"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-     
-      />
-
-      <br /><br />
-
-
-      <button onClick={handleSummarize} disabled={!text || loading} style={{ padding: "12px 20px", cursor: "pointer" }}>
-        {loading ? "Generating a summary..." : "Summarize"}
+      <button
+        onClick={handleSummarize}
+        disabled={loading}
+        className="cursor-pointer mt-6 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {loading ? messages.summarize.loading : messages.summarize.button}
       </button>
 
-      {summary && (
-        <div className="result-box">
-          <h3>סיכום:</h3>
-          <p>{summary}</p>
+      {error && (
+        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
       )}
 
+      {summary && (
+        <div className="mt-6 rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+          <div className="result-box">
+            <AiTextBlock text={summary} />
+          </div>
+
+          {basedOnFiles.length > 0 && (
+            <div className="mt-5">
+              <h4 className="text-sm font-semibold text-slate-700">
+                {messages.summarize.sourcesTitle}
+              </h4>
+              <ul className="mt-2 list-disc space-y-1 pr-5 text-sm text-slate-600">
+                {basedOnFiles.map((fileName, index) => (
+                  <li key={`${fileName}-${index}`}>{fileName}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
