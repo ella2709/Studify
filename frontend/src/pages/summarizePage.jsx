@@ -4,27 +4,33 @@ import messages from "../messages";
 import { summarizeAi } from "../services/aiService";
 
 function SummarizePage() {
+  const [topic, setTopic] = useState("");
   const [summary, setSummary] = useState("");
   const [basedOnFiles, setBasedOnFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSummarize = async () => {
-    try {
-      setLoading(true);
-      setSummary("");
-      setBasedOnFiles([]);
-      setError("");
+ const handleSummarize = async () => {
+  if (!topic.trim()) {
+  setError(messages.summarize.missingTopic);
+  return;
+ }
 
-      const data = await summarizeAi();
-      setSummary(data.summary || "");
-      setBasedOnFiles(data.basedOnFiles || []);
-    } catch (error) {
-      setError(error.message || messages.summarize.error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    setSummary("");
+    setBasedOnFiles([]);
+    setError("");
+
+    const data = await summarizeAi(topic);
+    setSummary(data.summary || "");
+    setBasedOnFiles(data.basedOnFiles || []);
+  } catch (error) {
+    setError(error.message || messages.summarize.error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -34,6 +40,20 @@ function SummarizePage() {
       <p className="mt-2 text-slate-600">
         {messages.summarize.description}
       </p>
+
+     <div className="mt-6">
+        <label className="mb-2 block text-sm font-medium text-slate-700">
+          {messages.summarize.topicLabel}
+        </label>
+
+        <textarea
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          rows={3}
+          placeholder={messages.summarize.topicPlaceholder}
+          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-800 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+        />
+    </div>
 
       <button
         onClick={handleSummarize}

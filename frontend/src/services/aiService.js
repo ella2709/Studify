@@ -18,12 +18,13 @@ export async function askAi(question) {
   return data;
 }
 
-export async function summarizeAi() {
+export async function summarizeAi(topic) {
   const res = await fetch(API.SUMMARIZE_RAG, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({ topic }),
   });
 
   const data = await res.json();

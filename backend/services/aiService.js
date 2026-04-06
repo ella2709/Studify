@@ -40,6 +40,44 @@ ${question}
   return result.response.text();
 }
 
+async function generateSummaryFromContext(topic, relevantChunks) {
+  const context = relevantChunks
+    .map(
+      (chunk, index) => `
+[Source ${index + 1}]
+File: ${chunk.fileName}
+Chunk: ${chunk.chunkIndex + 1}
+
+${chunk.text}
+`
+    )
+    .join("\n--------------------\n");
+
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const prompt = `
+You are a study assistant using Retrieval-Augmented Generation (RAG).
+
+Create a summary ONLY about the requested topic, based ONLY on the retrieved excerpts below.
+
+IMPORTANT:
+- Do NOT add information that does not appear in the excerpts.
+- If the excerpts do not clearly cover the topic, say:
+"No relevant information was found in the uploaded study materials for this topic."
+- Answer in the SAME LANGUAGE as the user's topic request.
+- Organize the summary clearly with short sections or bullets when helpful.
+
+REQUESTED TOPIC:
+${topic}
+
+RETRIEVED EXCERPTS:
+${context}
+`;
+
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
+
 async function generateSummaryFromMaterials(combinedText) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
@@ -63,5 +101,5 @@ ${combinedText}
 
 module.exports = {
   generateAnswerFromContext,
-  generateSummaryFromMaterials,
+  generateSummaryFromContext,
 };

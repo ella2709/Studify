@@ -39,15 +39,22 @@ const messages = {
     },
 
   summarize: {
-    title: "Summary of Study Material",
-    description: "Choose one of your uploaded files and generate a summary",
-    materialLabel: "Uploaded file",
-    button: "Summarize",
-    loading: "Generating summary...",
-    error: "Summarization failed",
-    noUploadedFiles: "No uploaded files available",
-    emptyMaterial: "The selected file is empty",
-    },
+  title: "Summary of Study Material",
+  description: "Generate a summary based on a specific topic from your uploaded materials",
+  
+  topicLabel: "Topic",
+  topicPlaceholder: "Write what you want to summarize...",
+  missingTopic: "Please enter a topic for the summary",
+
+  button: "Summarize",
+  loading: "Generating summary...",
+  error: "Summarization failed",
+
+  sourcesTitle: "Based on files:",
+
+  noUploadedFiles: "No uploaded files available",
+  emptyMaterial: "The selected file is empty",
+  },
 };
 
 export default messages;

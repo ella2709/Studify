@@ -1,6 +1,6 @@
 const materialsService = require("../services/materialsService");
-const { retrieveRelevantChunks, getAllMaterialsCombinedText } = require("../services/ragService");
-const { generateAnswerFromContext, generateSummaryFromMaterials } = require("../services/aiService");
+const { retrieveRelevantChunks } = require("../services/ragService");
+const { generateAnswerFromContext, generateSummaryFromContext } = require("../services/aiService");
 
 async function askRag(req, res) {
   try {
@@ -44,23 +44,32 @@ async function askRag(req, res) {
 
 async function summarizeRag(req, res) {
   try {
+    const { topic } = req.body;
+
+    if (!topic || !topic.trim()) {
+      return res.status(400).json({ error: "Missing summary topic" });
+    }
+
     const materials = materialsService.getAllMaterials();
 
     if (materials.length === 0) {
       return res.status(400).json({ error: "No uploaded materials found" });
     }
 
-    const combinedText = getAllMaterialsCombinedText(materials, 12000);
+    const relevantChunks = retrieveRelevantChunks(materials, topic, 8);
 
-    if (!combinedText.trim()) {
-      return res.status(400).json({ error: "Uploaded materials are empty" });
+    if (relevantChunks.length === 0) {
+      return res.json({
+        summary: "No relevant information was found in the uploaded study materials for this topic.",
+        basedOnFiles: [],
+      });
     }
 
-    const summary = await generateSummaryFromMaterials(combinedText);
+    const summary = await generateSummaryFromContext(topic, relevantChunks);
 
     res.json({
       summary,
-      basedOnFiles: materials.map((file) => file.originalName),
+      basedOnFiles: [...new Set(relevantChunks.map((chunk) => chunk.fileName))],
     });
   } catch (err) {
     console.error("SUMMARIZE RAG ERROR:", err);
