@@ -1,37 +1,31 @@
-const { splitTextIntoChunks, scoreChunkAgainstQuery } = require("../utils/textUtils");
+const { generateEmbedding } = require("./embeddingService");
+const { vectorsSimilarity } = require("../utils/vectorUtils");
 
-function retrieveRelevantChunks(materials, query, limit = 5) {
+async function retrieveRelevantChunks(materials, query, limit = 5) {
+  const queryEmbedding = await generateEmbedding(query);
   const allChunks = [];
 
   for (const material of materials) {
-    const chunks = splitTextIntoChunks(material.text);
+    const chunks = material.chunks || [];
 
-    chunks.forEach((chunkText, index) => {
+    for (const chunk of chunks) {
+      const score = vectorsSimilarity(queryEmbedding, chunk.embedding);
+
       allChunks.push({
         materialId: material.id,
         fileName: material.originalName,
-        chunkIndex: index,
-        text: chunkText,
-        score: scoreChunkAgainstQuery(chunkText, query),
+        chunkIndex: chunk.chunkIndex,
+        text: chunk.text,
+        score,
       });
-    });
+    }
   }
 
   return allChunks
-    .filter((chunk) => chunk.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
 
-function getAllMaterialsCombinedText(materials, maxChars = 12000) {
-  const parts = materials.map(
-    (material) => `FILE: ${material.originalName}\n${material.text}`
-  );
-
-  return parts.join("\n\n--------------------\n\n").slice(0, maxChars);
-}
-
 module.exports = {
   retrieveRelevantChunks,
-  getAllMaterialsCombinedText,
 };

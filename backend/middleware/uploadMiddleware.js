@@ -6,7 +6,7 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024,
   },
   fileFilter: (req, file, cb) => {
-    file.originalname = Buffer.from(file.originalname, "latin1").toString("utf8");
+    // file.originalname = Buffer.from(file.originalname, "latin1").toString("utf8");
 
     const allowedMimeTypes = [
       "text/plain",

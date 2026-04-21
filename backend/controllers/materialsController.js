@@ -1,8 +1,9 @@
 const crypto = require("crypto");
 const materialsService = require("../services/materialsService");
-const { normalizeText } = require("../utils/textUtils");
+const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
+const { generateEmbedding } = require("../services/embeddingService");
 
-function uploadMaterials(req, res) {
+async function uploadMaterials(req, res) {
   try {
     const files = req.files;
 
@@ -10,26 +11,47 @@ function uploadMaterials(req, res) {
       return res.status(400).json({ error: "No files were uploaded" });
     }
 
-    const savedFiles = files.map((file) => {
+    const savedFiles = [];
+
+    for (const file of files) {
+      const normalizedText = normalizeText(file.buffer.toString("utf-8"));
+      const chunks = splitTextIntoChunks(normalizedText);
+
+      const chunkObjects = [];
+
+      for (let i = 0; i < chunks.length; i++) {
+        const chunkText = chunks[i];
+        const embedding = await generateEmbedding(chunkText);
+
+        chunkObjects.push({
+          id: crypto.randomUUID(),
+          chunkIndex: i,
+          text: chunkText,
+          embedding,
+        });
+      }
+
       const material = {
         id: crypto.randomUUID(),
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
         uploadedAt: new Date().toISOString(),
-        text: normalizeText(file.buffer.toString("utf-8")),
+        text: normalizedText,
+        chunks: chunkObjects,
       };
 
       materialsService.addMaterial(material);
 
-      return {
+      savedFiles.push({
         id: material.id,
         originalName: material.originalName,
         mimeType: material.mimeType,
         size: material.size,
         uploadedAt: material.uploadedAt,
-      };
-    });
+        chunksCount: material.chunks.length,
+      });
+    }
 
     res.status(201).json({
       message: "Files uploaded successfully",
@@ -42,6 +64,10 @@ function uploadMaterials(req, res) {
     });
   }
 }
+
+module.exports = {
+  uploadMaterials,
+};
 
 function getMaterials(req, res) {
   const files = materialsService.getAllMaterialsMetadata();

@@ -16,7 +16,7 @@ async function askRag(req, res) {
       return res.status(400).json({ error: "No uploaded materials found" });
     }
 
-    const relevantChunks = retrieveRelevantChunks(materials, question, 5);
+    const relevantChunks = await retrieveRelevantChunks(materials, question, 5);
 
     if (relevantChunks.length === 0) {
       return res.json({
@@ -56,7 +56,7 @@ async function summarizeRag(req, res) {
       return res.status(400).json({ error: "No uploaded materials found" });
     }
 
-    const relevantChunks = retrieveRelevantChunks(materials, topic, 8);
+    const relevantChunks = await retrieveRelevantChunks(materials, topic, 8);
 
     if (relevantChunks.length === 0) {
       return res.json({
