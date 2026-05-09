@@ -4,17 +4,16 @@ import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import QuestionsPage from './pages/questionsPage'
 import SummarizePage from './pages/summarizePage'
 import UploadMaterialPage from './pages/uploadMaterialPage'
+import messages from './messages'
 
 
 function HomePage({ backendMessage }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
       <p className="text-lg font-semibold text-slate-700">
-        {backendMessage || "ברוכה הבאה למערכת Studify"}
+        {messages.welcome.title}
       </p>
-      <p className="mt-3 text-slate-500">
-        כאן נוכל בהמשך להציג מידע כללי על המערכת.
-      </p>
+
     </div>
   )
 }

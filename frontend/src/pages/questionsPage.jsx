@@ -85,7 +85,7 @@ function QuestionsPage() {
               </h4>
               <ul className="mt-2 list-disc space-y-1 pr-5 text-sm text-slate-600">
                 {sources.map((source, index) => (
-                  <li key={`${source.fileName}-${source.chunkIndex}-${index}`}>
+                  <li key={source.fileName}>
                     {source.fileName}
                   </li>
                 ))}

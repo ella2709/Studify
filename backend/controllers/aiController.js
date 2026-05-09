@@ -27,13 +27,22 @@ async function askRag(req, res) {
 
     const answer = await generateAnswerFromContext(question, relevantChunks);
 
-    res.json({
-      answer,
-      sources: relevantChunks.map((chunk) => ({
+   const uniqueSources = [
+  ...new Map(
+    relevantChunks.map((chunk) => [
+      chunk.fileName,
+      {
         fileName: chunk.fileName,
-        chunkIndex: chunk.chunkIndex,
-      })),
-    });
+      },
+    ])
+  ).values(),
+];
+
+res.json({
+  answer,
+  sources: uniqueSources,
+});
+
   } catch (err) {
     console.error("ASK RAG ERROR:", err);
     res.status(500).json({

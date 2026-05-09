@@ -1,4 +1,7 @@
 const messages = {
+  welcome: {
+    title: "Welcome to Studify",
+  },
   general: {
     loading: "Loading...",
     refresh: "Refresh",

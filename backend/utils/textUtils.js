@@ -6,6 +6,10 @@ function normalizeText(text) {
     .trim();
 }
 
+function detectLanguage(text) {
+  return /[\u0590-\u05FF]/.test(text) ? "Hebrew" : "English";
+}
+
 function splitTextIntoChunks(text, maxChunkLength = 900) {
   const normalized = normalizeText(text);
   if (!normalized) return [];
@@ -73,9 +77,12 @@ function scoreChunkAgainstQuery(chunkText, query) {
   return score;
 }
 
+
+
 module.exports = {
   normalizeText,
   splitTextIntoChunks,
   tokenize,
   scoreChunkAgainstQuery,
+  detectLanguage
 };
