@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const materialsService = require("../services/materialsService");
+const materialsRepository = require("../firebase/materialsRepository");
 const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
 const { generateEmbedding } = require("../services/embeddingService");
 
@@ -41,7 +41,7 @@ async function uploadMaterials(req, res) {
         chunks: chunkObjects,
       };
 
-      materialsService.addMaterial(material);
+      await materialsRepository.addMaterial(material);
 
       savedFiles.push({
         id: material.id,
@@ -69,20 +69,37 @@ module.exports = {
   uploadMaterials,
 };
 
-function getMaterials(req, res) {
-  const files = materialsService.getAllMaterialsMetadata();
-  res.json({ files });
-}
-
-function getMaterialById(req, res) {
-  const material = materialsService.getMaterialById(req.params.id);
-
-  if (!material) {
-    return res.status(404).json({ error: "Material not found" });
+async function getMaterials(req, res) {
+  try {
+    const files = await materialsRepository.getAllMaterialsMetadata();
+    res.json({ files });
+  } catch (err) {
+    console.error("GET MATERIALS ERROR:", err);
+    res.status(500).json({
+      error: err?.message || "Failed to get materials",
+    });
   }
-
-  res.json(material);
 }
+
+
+async function getMaterialById(req, res) {
+  try {
+    const material = await materialsRepository.getMaterialById(req.params.id);
+
+    if (!material) {
+      return res.status(404).json({ error: "Material not found" });
+    }
+
+    res.json(material);
+  } catch (err) {
+    console.error("GET MATERIAL BY ID ERROR:", err);
+    res.status(500).json({
+      error: err?.message || "Failed to get material",
+    });
+  }
+}
+
+
 
 module.exports = {
   uploadMaterials,

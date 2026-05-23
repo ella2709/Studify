@@ -11,8 +11,7 @@ const messages = {
 
   upload: {
     title: "Upload Study Material",
-    description:
-      "You can upload text files such as txt / md / json / csv.",
+    description: "You can upload text files such as txt / md / json / csv.",
     selectFiles: "Select files",
     selectedFiles: "Selected files:",
     uploadButton: "Upload files",
@@ -42,22 +41,23 @@ const messages = {
     },
 
   summarize: {
-  title: "Summary of Study Material",
-  description: "Generate a summary based on a specific topic from your uploaded materials",
-  
-  topicLabel: "Topic",
-  topicPlaceholder: "Write what you want to summarize...",
-  missingTopic: "Please enter a topic for the summary",
+    title: "Summary of Study Material",
+    description: "Generate a summary based on a specific topic from your uploaded materials",
+    
+    topicLabel: "Topic",
+    topicPlaceholder: "Write what you want to summarize...",
+    missingTopic: "Please enter a topic for the summary",
 
-  button: "Summarize",
-  loading: "Generating summary...",
-  error: "Summarization failed",
+    loading: "Generating summary...",
 
-  sourcesTitle: "Based on files:",
+    noUploadedFiles: "No uploaded files available",
+    emptyMaterial: "The selected file is empty",
 
-  noUploadedFiles: "No uploaded files available",
-  emptyMaterial: "The selected file is empty",
+    missingFields: "Please enter a topic",
+    topicPlaceholder: "Write a topic to summarize...",
+    submit: "Summarize",
+    error: "Failed to generate summary",
   },
-};
+  };
 
 export default messages;

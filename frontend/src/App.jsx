@@ -50,7 +50,7 @@ function App() {
             Studify
           </h1>
           <p className="mt-3 text-slate-600">
-            Study smarter with AI tools for questions and summaries
+            Study smarter with AI 
           </p>
         </div>
 
