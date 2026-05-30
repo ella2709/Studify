@@ -1,75 +1,125 @@
-import { useState } from 'react'
-import ReactMarkdown from "react-markdown";
-import { Routes, Route, Link, useLocation } from 'react-router-dom'
-import QuestionsPage from './pages/questionsPage'
-import SummarizePage from './pages/summarizePage'
-import UploadMaterialPage from './pages/uploadMaterialPage'
-import messages from './messages'
+import { useState } from "react";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
+import QuestionsPage from "./pages/questionsPage";
+import SummarizePage from "./pages/summarizePage";
+import UploadMaterialPage from "./pages/uploadMaterialPage";
+import messages from "./messages";
 
-
-function HomePage({ backendMessage }) {
+function HomePage() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <p className="text-lg font-semibold text-slate-700">
-        {messages.welcome.title}
-      </p>
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">
+          Welcome To
+        </p>
 
+        <h1 className="mt-3 text-4xl font-bold tracking-tight text-[#111111]">
+          Studify
+        </h1>
+
+        <p className="mt-3 max-w-2xl text-base leading-7 text-gray-600">
+          {messages.welcome.title}
+        </p>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-3">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-bold text-[#111111]">Upload Materials</h3>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Add your study files and keep your learning resources organized.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-bold text-[#111111]">Ask AI</h3>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Ask focused questions based on your uploaded materials.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-bold text-[#111111]">Summaries</h3>
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            Generate clear summaries from your learning content.
+          </p>
+        </div>
+      </section>
     </div>
-  )
+  );
 }
 
-
-
 function NavLinkButton({ to, children }) {
-  const location = useLocation()
-  const isActive = location.pathname === to
+  const location = useLocation();
+  const isActive = location.pathname === to;
 
   return (
     <Link
       to={to}
-      className={`rounded-xl px-5 py-3 text-sm font-medium transition ${
+      className={`rounded-xl px-4 py-3 text-sm font-medium transition ${
         isActive
-          ? "bg-orange-300 text-black shadow"
-          : "bg-orange-200 text-black hover:bg-orange-300"
+          ? "bg-white/15 text-white"
+          : "text-gray-300 hover:bg-white/10 hover:text-white"
       }`}
     >
       {children}
     </Link>
-  )
+  );
 }
 
 function App() {
-  const [backendMessage] = useState("")
+  const [backendMessage] = useState("");
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-white to-slate-100 px-4 py-10">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-8 text-center">
-          <h3 className="text-lg font-medium text-slate-500">Welcome To</h3>
-          <h1 className="mt-2 text-5xl font-extrabold tracking-tight text-slate-900">
-            Studify
-          </h1>
-          <p className="mt-3 text-slate-600">
-            Study smarter with AI 
-          </p>
+    <div className="flex min-h-screen bg-[#F7F7F5] text-[#111111]">
+      <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col bg-[#111111] p-4 text-white">
+        <div className="mb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#D8C2A0] font-bold text-black">
+              S
+            </div>
+
+            <div>
+              <h1 className="text-lg font-bold">Studify</h1>
+              <p className="text-xs text-gray-400">AI Learning Workspace</p>
+            </div>
+          </div>
         </div>
 
-        <div className="mb-8 flex flex-wrap justify-center gap-3">
-          <NavLinkButton to="/">דף הבית</NavLinkButton>
-          <NavLinkButton to="/upload">Upload Material</NavLinkButton>
+        <Link
+          to="/questions"
+          className="mb-6 flex h-11 items-center justify-center rounded-xl bg-[#D8C2A0] text-sm font-semibold text-black transition hover:bg-[#C9AE84]"
+        >
+          + New Chat
+        </Link>
+
+        <nav className="flex flex-1 flex-col gap-2">
+          <NavLinkButton to="/">Home</NavLinkButton>
+          <NavLinkButton to="/upload">Upload Materials</NavLinkButton>
           <NavLinkButton to="/questions">Ask AI</NavLinkButton>
-          <NavLinkButton to="/summarize">Summary</NavLinkButton>
-        </div>
+          <NavLinkButton to="/summarize">Summaries</NavLinkButton>
+        </nav>
 
+        <div className="space-y-2 border-t border-white/10 pt-4">
+          <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-gray-300 transition hover:bg-white/10">
+            Settings
+          </button>
+
+          <button className="w-full rounded-xl px-4 py-3 text-left text-sm text-gray-300 transition hover:bg-white/10">
+            User Profile
+          </button>
+        </div>
+      </aside>
+
+      <main className="ml-64 flex-1 p-6">
         <Routes>
           <Route path="/" element={<HomePage backendMessage={backendMessage} />} />
           <Route path="/upload" element={<UploadMaterialPage />} />
           <Route path="/questions" element={<QuestionsPage />} />
           <Route path="/summarize" element={<SummarizePage />} />
         </Routes>
-      </div>
+      </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

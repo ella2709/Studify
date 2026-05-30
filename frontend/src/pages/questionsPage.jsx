@@ -114,9 +114,16 @@ function QuestionsPage() {
   }
 
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
-      <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-800">Ask AI Chats</h3>
+    <div className="grid h-[calc(100vh-48px)] grid-cols-1 gap-6 xl:grid-cols-[320px_1fr]">
+      <aside className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div>
+          <h3 className="text-lg font-bold text-[#111111]">Ask AI Chats</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Continue previous questions or start a new conversation.
+          </p>
+        </div>
+
+      
 
         <div className="mt-4 space-y-3">
           <input
@@ -124,34 +131,38 @@ function QuestionsPage() {
             value={chatTitle}
             onChange={(e) => setChatTitle(e.target.value)}
             placeholder="New chat title"
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+            className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition focus:border-[#C9AE84]"
           />
 
           <button
             onClick={handleCreateChat}
-            className="w-full rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="h-11 w-full rounded-xl bg-black px-4 text-sm font-semibold text-white transition hover:bg-gray-800"
           >
-            New Chat
+            + New Chat
           </button>
         </div>
 
-        <div className="mt-5 space-y-2">
+        <div className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {loadingChats && (
-            <div className="text-sm text-slate-500">Loading chats...</div>
+            <div className="rounded-xl bg-[#F7F7F5] p-3 text-sm text-gray-500">
+              Loading chats...
+            </div>
           )}
 
           {!loadingChats && chats.length === 0 && (
-            <div className="text-sm text-slate-500">No chats yet</div>
+            <div className="rounded-xl bg-[#F7F7F5] p-3 text-sm text-gray-500">
+              No chats yet
+            </div>
           )}
 
           {chats.map((chat) => (
             <button
               key={chat.id}
               onClick={() => handleSelectChat(chat)}
-              className={`w-full rounded-xl px-3 py-2 text-left text-sm transition ${
+              className={`w-full rounded-xl px-3 py-3 text-left text-sm transition ${
                 selectedChat?.id === chat.id
-                  ? "bg-orange-100 font-semibold text-orange-800"
-                  : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  ? "bg-[#F3E9DA] font-semibold text-[#111111]"
+                  : "bg-[#F7F7F5] text-gray-700 hover:bg-gray-100"
               }`}
             >
               {chat.title}
@@ -160,52 +171,73 @@ function QuestionsPage() {
         </div>
       </aside>
 
-      <main className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <main className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white shadow-sm">
         {!selectedChat ? (
-          <div className="flex min-h-[300px] items-center justify-center text-center text-slate-500">
-            Choose a chat from the list or create a new chat
+          <div className="flex min-h-0 flex-1 items-center justify-center p-8 text-center">
+            <div>
+              <h2 className="text-2xl font-bold text-[#111111]">
+                Choose or create a chat
+              </h2>
+              <p className="mt-2 text-sm text-gray-500">
+                Your AI conversation will appear here.
+              </p>
+            </div>
           </div>
         ) : (
           <>
-        <h2 className="text-2xl font-bold text-slate-800">
-          {selectedChat.title}
-        </h2>
+            <div className="border-b border-gray-200 p-6">
+              <h2 className="text-2xl font-bold text-[#111111]">
+                {selectedChat.title}
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Ask questions based on your uploaded study materials.
+              </p>
+            </div>
 
-        <ChatMessages
-          messages={chatMessages}
-          sourcesTitle={messages.askAi.sourcesTitle}
-        />
+            <div className="min-h-0 flex-1 overflow-y-auto p-6">
+              <ChatMessages
+                messages={chatMessages}
+                sourcesTitle={messages.askAi.sourcesTitle}
+              />
 
-        {error && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
+              {loading && (
+                <div className="mt-4 text-sm text-gray-500">
+                  AI is thinking...
+                </div>
+              )}
+            </div>
+
+            {error && (
+              <div className="mx-6 mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div className="sticky bottom-0 border-t border-gray-200 bg-white p-4">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleAskAi();
+                  }}
+                  placeholder={messages.askAi.questionPlaceholder}
+                  className="h-12 flex-1 rounded-xl border border-gray-200 px-4 text-sm outline-none transition focus:border-[#C9AE84]"
+                />
+
+                <button
+                  onClick={handleAskAi}
+                  disabled={loading}
+                  className="h-12 rounded-xl bg-black px-5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? messages.askAi.loading : messages.askAi.submit}
+                </button>
+              </div>
+            </div>
+          </>
         )}
-
-        <div className="mt-6">
-          <label className="mb-2 block text-sm font-semibold text-slate-700">
-            {messages.askAi.questionLabel}
-          </label>
-
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder={messages.askAi.questionPlaceholder}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
-          />
-        </div>
-
-        <button
-          onClick={handleAskAi}
-          disabled={loading}
-          className="mt-6 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? messages.askAi.loading : messages.askAi.submit}
-        </button>
-      </>
-      )}
-    </main>
+      </main>
     </div>
   );
 }

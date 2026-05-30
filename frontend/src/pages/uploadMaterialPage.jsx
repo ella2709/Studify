@@ -10,6 +10,31 @@ function formatFileSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function getFileBadge(fileName = "") {
+  const lowerName = fileName.toLowerCase();
+
+  if (lowerName.endsWith(".pdf")) return "PDF";
+  if (lowerName.endsWith(".docx") || lowerName.endsWith(".doc")) return "DOC";
+  if (lowerName.endsWith(".pptx") || lowerName.endsWith(".ppt")) return "PPT";
+  if (lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls")) return "XLS";
+  if (lowerName.endsWith(".txt")) return "TXT";
+  if (lowerName.endsWith(".md")) return "MD";
+  if (lowerName.endsWith(".csv")) return "CSV";
+  return "FILE";
+}
+
+function formatUploadDate(file) {
+  const rawDate = file.createdAt || file.uploadedAt || file.created_at;
+
+  if (!rawDate) return "Upload date unavailable";
+
+  const date = new Date(rawDate);
+
+  if (Number.isNaN(date.getTime())) return "Upload date unavailable";
+
+  return date.toLocaleDateString();
+}
+
 function UploadMaterialPage() {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -105,80 +130,17 @@ function UploadMaterialPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h2 className="text-2xl font-bold text-slate-800">
-        {messages.upload.title}
-      </h2>
-      <p className="mt-3 text-slate-600">
-        {messages.upload.description}
-      </p>
-
-      <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
-        <label className="mb-3 block text-sm font-semibold text-slate-700">
-          {messages.upload.selectFiles}
-        </label>
-
-        <div className="flex items-center gap-4">
-          <input
-            id="file-upload"
-            type="file"
-            multiple
-            accept=".txt,.md,.json,.csv"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-
-          <label
-            htmlFor="file-upload"
-            title={messages.upload.selectFiles}
-            className="inline-flex h-12 w-12 cursor-pointer items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <AttachmentIcon />
-          </label>
-
-          <span className="text-sm text-slate-500">
-            {selectedFiles.length === 0
-              ? messages.upload.noFileSelected
-              : `${selectedFiles.length} ${
-                  selectedFiles.length === 1
-                    ? messages.upload.fileSelected
-                    : messages.upload.filesSelected
-                }`}
-          </span>
-        </div>
-
-        {selectedFiles.length > 0 && (
-          <div className="mt-5">
-            <h3 className="text-sm font-semibold text-slate-700">
-              {messages.upload.selectedFiles}
-            </h3>
-
-            <ol className="mt-3 list-decimal space-y-2 pr-5 text-sm text-slate-700">
-              {selectedFiles.map((file, index) => (
-                <li key={`${file.name}-${index}`} className="break-words">
-                  <span className="font-medium">{file.name}</span>
-                  <span className="mr-2 text-slate-500">
-                    ({formatFileSize(file.size)})
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={handleUpload}
-          disabled={loading || selectedFiles.length === 0}
-          className="mt-6 cursor-pointer rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? messages.upload.uploading : messages.upload.uploadButton}
-        </button>
-      </div>
+    <div className="space-y-6">
+      <header>
+        <h2 className="text-3xl font-bold tracking-tight text-[#111111]">
+          {messages.upload.title}
+        </h2>
+        <p className="mt-2 text-gray-500">Manage your study resources</p>
+      </header>
 
       {status.text && (
         <div
-          className={`mt-5 rounded-xl px-4 py-3 text-sm ${
+          className={`rounded-xl px-4 py-3 text-sm ${
             status.type === "error"
               ? "border border-red-200 bg-red-50 text-red-700"
               : "border border-green-200 bg-green-50 text-green-700"
@@ -188,49 +150,158 @@ function UploadMaterialPage() {
         </div>
       )}
 
-      <div className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-slate-800">
-            {messages.upload.uploadedFilesTitle}
-          </h3>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[420px_1fr]">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div>
+            <h3 className="text-lg font-bold text-[#111111]">Upload Card</h3>
+            <p className="mt-2 text-sm leading-6 text-gray-500">
+              {messages.upload.description}
+            </p>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-dashed border-gray-300 bg-[#F7F7F5] p-8 text-center">
+            <input
+              id="file-upload"
+              type="file"
+              multiple
+              accept=".txt,.md,.json,.csv,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            <label
+              htmlFor="file-upload"
+              title={messages.upload.selectFiles}
+              className="mx-auto flex h-14 w-14 cursor-pointer items-center justify-center rounded-2xl bg-white text-gray-700 shadow-sm ring-1 ring-gray-200 transition hover:bg-gray-50"
+            >
+              <AttachmentIcon />
+            </label>
+
+            <h4 className="mt-4 text-base font-bold text-[#111111]">
+              Drag & Drop Files
+            </h4>
+
+            <p className="mt-2 text-sm text-gray-500">
+              or choose files from your computer
+            </p>
+
+            <label
+              htmlFor="file-upload"
+              className="mt-5 inline-flex h-11 cursor-pointer items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] transition hover:bg-gray-50"
+            >
+              {messages.upload.selectFiles}
+            </label>
+
+            <p className="mt-4 text-sm text-gray-500">
+              {selectedFiles.length === 0
+                ? messages.upload.noFileSelected
+                : `${selectedFiles.length} ${
+                    selectedFiles.length === 1
+                      ? messages.upload.fileSelected
+                      : messages.upload.filesSelected
+                  }`}
+            </p>
+          </div>
+
+          {selectedFiles.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-[#111111]">
+                {messages.upload.selectedFiles}
+              </h3>
+
+              <ol className="mt-3 space-y-2 text-sm text-gray-700">
+                {selectedFiles.map((file, index) => (
+                  <li
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-[#F7F7F5] p-3"
+                  >
+                    <span className="break-words font-medium">{file.name}</span>
+                    <span className="shrink-0 text-xs text-gray-500">
+                      {formatFileSize(file.size)}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           <button
             type="button"
-            onClick={loadUploadedFiles}
-            disabled={loadingList}
-            className="cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleUpload}
+            disabled={loading || selectedFiles.length === 0}
+            className="mt-6 h-11 w-full cursor-pointer rounded-xl bg-black px-5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loadingList ? messages.general.loading : messages.general.refresh}
+            {loading ? messages.upload.uploading : messages.upload.uploadButton}
           </button>
-        </div>
+        </section>
 
-        {uploadedFiles.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-            {messages.upload.emptyList}
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-[#111111]">
+                {messages.upload.uploadedFilesTitle}
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Files available for AI learning and retrieval.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={loadUploadedFiles}
+              disabled={loadingList}
+              className="h-11 cursor-pointer rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-[#111111] transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loadingList ? messages.general.loading : messages.general.refresh}
+            </button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {uploadedFiles.map((file) => (
-              <div
-                key={file.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <p className="break-words text-sm font-semibold text-slate-800">
-                  {file.originalName}
-                </p>
 
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-                  <span>
-                    {messages.upload.fileSize}: {formatFileSize(file.size)}
-                  </span>
-                  <span>
-                    {messages.upload.fileType}: {file.mimeType || "unknown"}
-                  </span>
+          {uploadedFiles.length === 0 ? (
+            <div className="rounded-2xl border border-gray-200 bg-[#F7F7F5] p-5 text-sm text-gray-600">
+              {messages.upload.emptyList}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {uploadedFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-[#F7F7F5] p-4"
+                >
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-xs font-bold text-gray-700 ring-1 ring-gray-200">
+                      {getFileBadge(file.originalName)}
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#111111]">
+                        {file.originalName}
+                      </p>
+
+                      <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                        <span>
+                          {messages.upload.fileSize}: {formatFileSize(file.size)}
+                        </span>
+                        <span>
+                          {messages.upload.fileType}:{" "}
+                          {file.mimeType || "unknown"}
+                        </span>
+                        <span>{formatUploadDate(file)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-gray-500 transition hover:bg-white hover:text-[#111111]"
+                    title="Actions"
+                  >
+                    ⋯
+                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

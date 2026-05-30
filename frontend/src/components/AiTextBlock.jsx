@@ -7,7 +7,7 @@ function AiTextBlock({ text, className = "" }) {
 
   return (
     <div
-      className={`ai-text-block ${className}`}
+      className={`ai-text-block prose prose-sm max-w-none text-[#111111] ${className}`}
       dir={direction}
       style={{ textAlign }}
     >

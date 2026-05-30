@@ -1,14 +1,58 @@
 @import "tailwindcss";
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #F7F7F5;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: #F7F7F5;
+  color: #111111;
+  font-family: Inter, Assistant, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: #D8C2A0;
+  color: #111111;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
 }
 
 .ai-text-block {
   white-space: pre-wrap;
-  line-height: 1.5;
+  line-height: 1.7;
+  font-size: 0.95rem;
 }
 
 .ai-text-block p {
@@ -18,11 +62,28 @@ body {
 .ai-text-block h1,
 .ai-text-block h2,
 .ai-text-block h3 {
-  margin: 10px 0 6px;
+  margin: 12px 0 6px;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
-.ai-text-block ul {
-  padding-inline-start: 18px;
+.ai-text-block h1 {
+  font-size: 1.35rem;
+}
+
+.ai-text-block h2 {
+  font-size: 1.2rem;
+}
+
+.ai-text-block h3 {
+  font-size: 1.05rem;
+}
+
+.ai-text-block ul,
+.ai-text-block ol {
+  margin-top: 4px;
+  margin-bottom: 8px;
+  padding-inline-start: 20px;
 }
 
 .ai-text-block p + ul,
@@ -30,16 +91,9 @@ body {
   margin-top: 0;
 }
 
-.ai-text-block ul,
-.ai-text-block ol {
-  margin-bottom: 6px;
-}
-
-
 .ai-text-block li {
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
-
 
 .ai-text-block strong {
   font-weight: 700;
