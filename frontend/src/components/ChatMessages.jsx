@@ -2,24 +2,41 @@ import AiTextBlock from "./AiTextBlock";
 
 function ChatMessages({ messages = [] }) {
   return (
-    <div className="space-y-4">
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {messages.map((message, index) => {
         const isUser = message.role === "user";
 
         return (
           <div
             key={message.id || index}
-            className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+            style={{
+              display: "flex",
+              justifyContent: isUser ? "flex-end" : "flex-start",
+            }}
           >
             <div
-              className={`max-w-[75%] rounded-2xl p-4 text-sm shadow-sm ${
-                isUser
-                  ? "bg-[#F3E9DA] text-[#111111]"
-                  : "border border-gray-200 bg-white text-[#111111]"
-              }`}
+              style={{
+                maxWidth: "75%",
+                borderRadius: "1rem",
+                padding: "0.875rem 1.125rem",
+                fontSize: "0.9375rem",
+                boxShadow: "var(--shadow-sm)",
+                ...(isUser
+                  ? {
+                      backgroundColor: "var(--accent-bg)",
+                      color: "var(--text)",
+                      borderBottomRightRadius: "0.25rem",
+                    }
+                  : {
+                      backgroundColor: "var(--bg-surface)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text)",
+                      borderBottomLeftRadius: "0.25rem",
+                    }),
+              }}
             >
               {isUser ? (
-                <div className="whitespace-pre-wrap leading-6">
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
                   {message.content}
                 </div>
               ) : (
@@ -27,12 +44,38 @@ function ChatMessages({ messages = [] }) {
                   <AiTextBlock text={message.content} />
 
                   {message.sources?.length > 0 && (
-                    <div className="mt-4 border-t border-gray-200 pt-3">
-                      <div className="flex flex-wrap gap-2">
-                        {message.sources.map((source, sourceIndex) => (
+                    <div
+                      style={{
+                        marginTop: "0.875rem",
+                        paddingTop: "0.75rem",
+                        borderTop: "1px solid var(--border)",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          color: "var(--text-muted)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          margin: "0 0 0.5rem",
+                        }}
+                      >
+                        Sources
+                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
+                        {message.sources.map((source, i) => (
                           <span
-                            key={`${source.fileName}-${sourceIndex}`}
-                            className="rounded-full border border-gray-200 bg-[#F7F7F5] px-3 py-1 text-xs text-gray-600"
+                            key={`${source.fileName}-${i}`}
+                            style={{
+                              display: "inline-block",
+                              padding: "0.1875rem 0.625rem",
+                              borderRadius: 999,
+                              border: "1px solid var(--border)",
+                              backgroundColor: "var(--bg-raised)",
+                              fontSize: "0.75rem",
+                              color: "var(--text-2)",
+                            }}
                           >
                             {source.fileName}
                           </span>

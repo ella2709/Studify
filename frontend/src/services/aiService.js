@@ -2,92 +2,78 @@ import { API } from "../api";
 
 async function handleResponse(res) {
   const data = await res.json();
-
   if (!res.ok) {
     throw new Error(data.error || "Request failed");
   }
-
   return data;
+}
+
+function withProjectId(base, projectId) {
+  if (!projectId) return base;
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}projectId=${encodeURIComponent(projectId)}`;
 }
 
 // ---------- ASK AI ----------
 
-export async function createAskChat(title) {
+export async function createAskChat(title, projectId) {
   const res = await fetch(API.ASK_CHATS, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ title }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, projectId }),
   });
-
   return handleResponse(res);
 }
 
-export async function getAskChats() {
-  const res = await fetch(API.ASK_CHATS);
-
+export async function getAskChats(projectId) {
+  const res = await fetch(withProjectId(API.ASK_CHATS, projectId));
   return handleResponse(res);
 }
 
-export async function getAskChatMessages(chatId) {
-  const res = await fetch(`${API.ASK_CHATS}/${chatId}/messages`);
-
+export async function getAskChatMessages(chatId, projectId) {
+  const res = await fetch(
+    withProjectId(`${API.ASK_CHATS}/${chatId}/messages`, projectId)
+  );
   return handleResponse(res);
 }
 
-export async function askAi(chatId, question) {
+export async function askAi(chatId, question, projectId) {
   const res = await fetch(API.ASK_RAG, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      chatId,
-      question,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chatId, question, projectId }),
   });
-
   return handleResponse(res);
 }
 
 // ---------- SUMMARIZE AI ----------
 
-export async function createSummarizeChat(title) {
+export async function createSummarizeChat(title, projectId) {
   const res = await fetch(API.SUMMARIZE_CHATS, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ title }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, projectId }),
   });
-
   return handleResponse(res);
 }
 
-export async function getSummarizeChats() {
-  const res = await fetch(API.SUMMARIZE_CHATS);
-
+export async function getSummarizeChats(projectId) {
+  const res = await fetch(withProjectId(API.SUMMARIZE_CHATS, projectId));
   return handleResponse(res);
 }
 
-export async function getSummarizeChatMessages(chatId) {
-  const res = await fetch(`${API.SUMMARIZE_CHATS}/${chatId}/messages`);
-
+export async function getSummarizeChatMessages(chatId, projectId) {
+  const res = await fetch(
+    withProjectId(`${API.SUMMARIZE_CHATS}/${chatId}/messages`, projectId)
+  );
   return handleResponse(res);
 }
 
-export async function summarizeAi(chatId, topic) {
+export async function summarizeAi(chatId, topic, projectId) {
   const res = await fetch(API.SUMMARIZE_RAG, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      chatId,
-      topic,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chatId, topic, projectId }),
   });
-
   return handleResponse(res);
 }

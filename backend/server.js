@@ -4,6 +4,7 @@ const cors = require("cors");
 
 const materialsRoutes = require("./routes/materialsRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const projectsRoutes = require("./routes/projectsRoutes");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/materials", materialsRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/projects", projectsRoutes);
 
 const PORT = process.env.PORT || 3001;
 

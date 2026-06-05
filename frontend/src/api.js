@@ -8,4 +8,8 @@ export const API = {
   ASK_CHATS: `${BASE_URL}/api/ai/ask-chats`,
   SUMMARIZE_CHATS: `${BASE_URL}/api/ai/summarize-chats`,
   HEALTH: `${BASE_URL}/api/health`,
+  GET_PROJECTS: `${BASE_URL}/api/projects`,
+  CREATE_PROJECT: `${BASE_URL}/api/projects`,
+  projectConversations: (projectId) =>
+    `${BASE_URL}/api/projects/${projectId}/conversations`,
 };

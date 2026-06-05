@@ -7,15 +7,26 @@ const {
 } = require("../services/aiService");
 const { buildUniqueSources } = require("../utils/fileUtils");
 
+const DEFAULT_PROJECT_ID = "defaultProject";
+
+function getProjectId(req) {
+  return req.body.projectId || req.query.projectId || DEFAULT_PROJECT_ID;
+}
+
 async function createAskAIChat(req, res) {
   try {
     const { title } = req.body;
+    const projectId = getProjectId(req);
 
     if (!title || !title.trim()) {
       return res.status(400).json({ error: "Missing chat title" });
     }
 
-    const chat = await conversationsRepository.createChat("askAI", title.trim());
+    const chat = await conversationsRepository.createChat(
+      "askAI",
+      title.trim(),
+      projectId
+    );
 
     res.json({ chat });
   } catch (err) {
@@ -26,6 +37,7 @@ async function createAskAIChat(req, res) {
 async function createSummarizeAIChat(req, res) {
   try {
     const { title } = req.body;
+    const projectId = getProjectId(req);
 
     if (!title || !title.trim()) {
       return res.status(400).json({ error: "Missing chat title" });
@@ -33,7 +45,8 @@ async function createSummarizeAIChat(req, res) {
 
     const chat = await conversationsRepository.createChat(
       "summarizeAI",
-      title.trim()
+      title.trim(),
+      projectId
     );
 
     res.json({ chat });
@@ -45,6 +58,7 @@ async function createSummarizeAIChat(req, res) {
 async function askRag(req, res) {
   try {
     const { chatId, question } = req.body;
+    const projectId = getProjectId(req);
 
     if (!chatId) {
       return res.status(400).json({ error: "Missing chatId" });
@@ -54,12 +68,17 @@ async function askRag(req, res) {
       return res.status(400).json({ error: "Missing question" });
     }
 
-    await conversationsRepository.addMessageToChat("askAI", chatId, {
-      role: "user",
-      content: question,
-    });
+    await conversationsRepository.addMessageToChat(
+      "askAI",
+      chatId,
+      {
+        role: "user",
+        content: question,
+      },
+      projectId
+    );
 
-    const materials = await materialsRepository.getAllMaterials();
+    const materials = await materialsRepository.getAllMaterials(projectId);
 
     if (materials.length === 0) {
       return res.status(400).json({ error: "No uploaded materials found" });
@@ -78,11 +97,16 @@ async function askRag(req, res) {
       sources = buildUniqueSources(relevantChunks);
     }
 
-    await conversationsRepository.addMessageToChat("askAI", chatId, {
-      role: "assistant",
-      content: answer,
-      sources,
-    });
+    await conversationsRepository.addMessageToChat(
+      "askAI",
+      chatId,
+      {
+        role: "assistant",
+        content: answer,
+        sources,
+      },
+      projectId
+    );
 
     res.json({
       chatId,
@@ -100,6 +124,7 @@ async function askRag(req, res) {
 async function summarizeRag(req, res) {
   try {
     const { chatId, topic } = req.body;
+    const projectId = getProjectId(req);
 
     if (!chatId) {
       return res.status(400).json({ error: "Missing chatId" });
@@ -109,12 +134,17 @@ async function summarizeRag(req, res) {
       return res.status(400).json({ error: "Missing summary topic" });
     }
 
-    await conversationsRepository.addMessageToChat("summarizeAI", chatId, {
-      role: "user",
-      content: topic,
-    });
+    await conversationsRepository.addMessageToChat(
+      "summarizeAI",
+      chatId,
+      {
+        role: "user",
+        content: topic,
+      },
+      projectId
+    );
 
-    const materials = await materialsRepository.getAllMaterials();
+    const materials = await materialsRepository.getAllMaterials(projectId);
 
     if (materials.length === 0) {
       return res.status(400).json({ error: "No uploaded materials found" });
@@ -134,11 +164,16 @@ async function summarizeRag(req, res) {
       sources = buildUniqueSources(relevantChunks);
     }
 
-    await conversationsRepository.addMessageToChat("summarizeAI", chatId, {
-      role: "assistant",
-      content: summary,
-      sources,
-    });
+    await conversationsRepository.addMessageToChat(
+      "summarizeAI",
+      chatId,
+      {
+        role: "assistant",
+        content: summary,
+        sources,
+      },
+      projectId
+    );
 
     res.json({
       chatId,
@@ -155,7 +190,9 @@ async function summarizeRag(req, res) {
 
 async function getAskAIChats(req, res) {
   try {
-    const chats = await conversationsRepository.getChats("askAI");
+    const projectId = getProjectId(req);
+    const chats = await conversationsRepository.getChats("askAI", projectId);
+
     res.json({ chats });
   } catch (err) {
     res.status(500).json({ error: err?.message || "Failed to get chats" });
@@ -164,7 +201,13 @@ async function getAskAIChats(req, res) {
 
 async function getSummarizeAIChats(req, res) {
   try {
-    const chats = await conversationsRepository.getChats("summarizeAI");
+    const projectId = getProjectId(req);
+
+    const chats = await conversationsRepository.getChats(
+      "summarizeAI",
+      projectId
+    );
+
     res.json({ chats });
   } catch (err) {
     res.status(500).json({ error: err?.message || "Failed to get chats" });
@@ -174,10 +217,12 @@ async function getSummarizeAIChats(req, res) {
 async function getAskAIChatMessages(req, res) {
   try {
     const { chatId } = req.params;
+    const projectId = getProjectId(req);
 
     const messages = await conversationsRepository.getChatMessages(
       "askAI",
-      chatId
+      chatId,
+      projectId
     );
 
     res.json({ messages });
@@ -189,10 +234,12 @@ async function getAskAIChatMessages(req, res) {
 async function getSummarizeAIChatMessages(req, res) {
   try {
     const { chatId } = req.params;
+    const projectId = getProjectId(req);
 
     const messages = await conversationsRepository.getChatMessages(
       "summarizeAI",
-      chatId
+      chatId,
+      projectId
     );
 
     res.json({ messages });

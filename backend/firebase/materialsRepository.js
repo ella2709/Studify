@@ -3,24 +3,24 @@ const { db, admin } = require("./firebase");
 const DEFAULT_USER_ID = "defaultUser";
 const DEFAULT_PROJECT_ID = "defaultProject";
 
-function getMaterialsCollection() {
+function getMaterialsCollection(projectId = DEFAULT_PROJECT_ID) {
   return db
     .collection("users")
     .doc(DEFAULT_USER_ID)
     .collection("projects")
-    .doc(DEFAULT_PROJECT_ID)
+    .doc(projectId)
     .collection("materials");
 }
 
-async function addMaterial(material) {
-  await getMaterialsCollection().doc(material.id).set({
+async function addMaterial(material, projectId = DEFAULT_PROJECT_ID) {
+  await getMaterialsCollection(projectId).doc(material.id).set({
     ...material,
     uploadedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 }
 
-async function getAllMaterials() {
-  const snapshot = await getMaterialsCollection()
+async function getAllMaterials(projectId = DEFAULT_PROJECT_ID) {
+  const snapshot = await getMaterialsCollection(projectId)
     .orderBy("uploadedAt", "desc")
     .get();
 
@@ -30,8 +30,8 @@ async function getAllMaterials() {
   }));
 }
 
-async function getMaterialById(id) {
-  const doc = await getMaterialsCollection().doc(id).get();
+async function getMaterialById(id, projectId = DEFAULT_PROJECT_ID) {
+  const doc = await getMaterialsCollection(projectId).doc(id).get();
 
   if (!doc.exists) {
     return null;
@@ -43,8 +43,8 @@ async function getMaterialById(id) {
   };
 }
 
-async function getAllMaterialsMetadata() {
-  const materials = await getAllMaterials();
+async function getAllMaterialsMetadata(projectId = DEFAULT_PROJECT_ID) {
+  const materials = await getAllMaterials(projectId);
 
   return materials.map((item) => ({
     id: item.id,
@@ -56,8 +56,8 @@ async function getAllMaterialsMetadata() {
   }));
 }
 
-async function removeMaterial(id) {
-  await getMaterialsCollection().doc(id).delete();
+async function removeMaterial(id, projectId = DEFAULT_PROJECT_ID) {
+  await getMaterialsCollection(projectId).doc(id).delete();
 }
 
 module.exports = {

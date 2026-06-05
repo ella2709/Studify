@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams, useLocation, Link } from "react-router-dom";
 import {
   askAi,
   createAskChat,
@@ -8,7 +9,43 @@ import {
 import messages from "../messages.js";
 import ChatMessages from "../components/ChatMessages";
 
+function ProjectBreadcrumb() {
+  const { projectId } = useParams();
+  const location = useLocation();
+  if (!projectId) return null;
+  const name =
+    location.state?.projectName ||
+    projectId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  return (
+    <Link
+      to={`/project/${projectId}`}
+      state={{ projectName: name }}
+      style={{
+        fontSize: "0.8125rem",
+        color: "var(--text-muted)",
+        textDecoration: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.3125rem",
+        transition: "color 0.14s",
+        marginBottom: "0.75rem",
+        flexShrink: 0,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
+      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+    >
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      {name}
+    </Link>
+  );
+}
+
 function QuestionsPage() {
+  const { projectId } = useParams();
+
   const [question, setQuestion] = useState("");
   const [chatTitle, setChatTitle] = useState("");
   const [chats, setChats] = useState([]);
@@ -19,13 +56,18 @@ function QuestionsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    setSelectedChat(null);
+    setChatMessages([]);
+    setChats([]);
+    setError("");
     loadChats();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId]);
 
   async function loadChats() {
     try {
       setLoadingChats(true);
-      const data = await getAskChats();
+      const data = await getAskChats(projectId);
       setChats(data.chats || []);
     } catch (err) {
       setError(err.message || "Failed to load chats");
@@ -36,19 +78,15 @@ function QuestionsPage() {
 
   async function handleCreateChat() {
     setError("");
-
     if (!chatTitle.trim()) {
       setError("Please enter a chat title");
       return;
     }
-
     try {
-      const data = await createAskChat(chatTitle);
-
+      const data = await createAskChat(chatTitle, projectId);
       setSelectedChat(data.chat);
       setChatMessages([]);
       setChatTitle("");
-
       await loadChats();
     } catch (err) {
       setError(err.message || "Failed to create chat");
@@ -57,12 +95,10 @@ function QuestionsPage() {
 
   async function handleSelectChat(chat) {
     setError("");
-
     try {
       setSelectedChat(chat);
       setLoading(true);
-
-      const data = await getAskChatMessages(chat.id);
+      const data = await getAskChatMessages(chat.id, projectId);
       setChatMessages(data.messages || []);
     } catch (err) {
       setError(err.message || "Failed to load chat messages");
@@ -73,38 +109,28 @@ function QuestionsPage() {
 
   async function handleAskAi() {
     setError("");
-
     if (!selectedChat) {
       setError("Please choose or create a chat first");
       return;
     }
-
     if (!question.trim()) {
       setError(messages.askAi.missingFields);
       return;
     }
 
-    const userMessage = {
-      role: "user",
-      content: question,
-    };
-
+    const userMessage = { role: "user", content: question };
     setChatMessages((prev) => [...prev, userMessage]);
 
     try {
       setLoading(true);
-
-      const result = await askAi(selectedChat.id, question);
-
+      const result = await askAi(selectedChat.id, question, projectId);
       const assistantMessage = {
         role: "assistant",
         content: result.answer || "",
         sources: result.sources || [],
       };
-
       setChatMessages((prev) => [...prev, assistantMessage]);
       setQuestion("");
-
       await loadChats();
     } catch (err) {
       setError(err.message || messages.askAi.error);
@@ -114,130 +140,143 @@ function QuestionsPage() {
   }
 
   return (
-    <div className="grid h-[calc(100vh-48px)] grid-cols-1 gap-6 xl:grid-cols-[320px_1fr]">
-      <aside className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div>
-          <h3 className="text-lg font-bold text-[#111111]">Ask AI Chats</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Continue previous questions or start a new conversation.
-          </p>
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--topbar-h) - 5rem)", minHeight: 480 }}>
+      <ProjectBreadcrumb />
 
-      
-
-        <div className="mt-4 space-y-3">
-          <input
-            type="text"
-            value={chatTitle}
-            onChange={(e) => setChatTitle(e.target.value)}
-            placeholder="New chat title"
-            className="h-11 w-full rounded-xl border border-gray-200 px-4 text-sm outline-none transition focus:border-[#C9AE84]"
-          />
-
-          <button
-            onClick={handleCreateChat}
-            className="h-11 w-full rounded-xl bg-black px-4 text-sm font-semibold text-white transition hover:bg-gray-800"
-          >
-            + New Chat
-          </button>
-        </div>
-
-        <div className="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-          {loadingChats && (
-            <div className="rounded-xl bg-[#F7F7F5] p-3 text-sm text-gray-500">
-              Loading chats...
-            </div>
-          )}
-
-          {!loadingChats && chats.length === 0 && (
-            <div className="rounded-xl bg-[#F7F7F5] p-3 text-sm text-gray-500">
-              No chats yet
-            </div>
-          )}
-
-          {chats.map((chat) => (
-            <button
-              key={chat.id}
-              onClick={() => handleSelectChat(chat)}
-              className={`w-full rounded-xl px-3 py-3 text-left text-sm transition ${
-                selectedChat?.id === chat.id
-                  ? "bg-[#F3E9DA] font-semibold text-[#111111]"
-                  : "bg-[#F7F7F5] text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {chat.title}
-            </button>
-          ))}
-        </div>
-      </aside>
-
-      <main className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white shadow-sm">
-        {!selectedChat ? (
-          <div className="flex min-h-0 flex-1 items-center justify-center p-8 text-center">
-            <div>
-              <h2 className="text-2xl font-bold text-[#111111]">
-                Choose or create a chat
-              </h2>
-              <p className="mt-2 text-sm text-gray-500">
-                Your AI conversation will appear here.
-              </p>
-            </div>
+      <div className="chat-layout" style={{ flex: 1, minHeight: 0 }}>
+        {/* ── Chat sidebar ── */}
+        <aside
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "1rem",
+            padding: "1.25rem",
+            boxShadow: "var(--shadow-card)",
+            minHeight: 0,
+          }}
+        >
+          <div style={{ marginBottom: "1rem", flexShrink: 0 }}>
+            <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.25rem" }}>
+              Ask AI Chats
+            </h3>
+            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0 }}>
+              Continue a conversation or start new.
+            </p>
           </div>
-        ) : (
-          <>
-            <div className="border-b border-gray-200 p-6">
-              <h2 className="text-2xl font-bold text-[#111111]">
-                {selectedChat.title}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Ask questions based on your uploaded study materials.
-              </p>
-            </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto p-6">
-              <ChatMessages
-                messages={chatMessages}
-                sourcesTitle={messages.askAi.sourcesTitle}
-              />
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.875rem", flexShrink: 0 }}>
+            <input
+              type="text"
+              value={chatTitle}
+              onChange={(e) => setChatTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleCreateChat()}
+              placeholder="Chat title..."
+              className="input-base"
+              style={{ fontSize: "0.875rem" }}
+            />
+            <button onClick={handleCreateChat} className="btn btn-primary" style={{ width: "100%" }}>
+              + New Chat
+            </button>
+          </div>
 
-              {loading && (
-                <div className="mt-4 text-sm text-gray-500">
-                  AI is thinking...
-                </div>
-              )}
-            </div>
-
-            {error && (
-              <div className="mx-6 mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.3125rem" }}>
+            {loadingChats && (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="skeleton" style={{ height: 36, borderRadius: "0.625rem" }} />
+                ))}
+              </>
+            )}
+            {!loadingChats && chats.length === 0 && (
+              <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", padding: "0.75rem", textAlign: "center", backgroundColor: "var(--bg-raised)", borderRadius: "0.625rem" }}>
+                No chats yet
               </div>
             )}
+            {chats.map((chat) => (
+              <button
+                key={chat.id}
+                onClick={() => handleSelectChat(chat)}
+                className={`chat-item${selectedChat?.id === chat.id ? " active" : ""}`}
+              >
+                {chat.title}
+              </button>
+            ))}
+          </div>
+        </aside>
 
-            <div className="sticky bottom-0 border-t border-gray-200 bg-white p-4">
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAskAi();
-                  }}
-                  placeholder={messages.askAi.questionPlaceholder}
-                  className="h-12 flex-1 rounded-xl border border-gray-200 px-4 text-sm outline-none transition focus:border-[#C9AE84]"
-                />
-
-                <button
-                  onClick={handleAskAi}
-                  disabled={loading}
-                  className="h-12 rounded-xl bg-black px-5 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {loading ? messages.askAi.loading : messages.askAi.submit}
-                </button>
+        {/* ── Chat area ── */}
+        <main
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "1rem",
+            boxShadow: "var(--shadow-card)",
+            minHeight: 0,
+            overflow: "hidden",
+          }}
+        >
+          {!selectedChat ? (
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center" }}>
+              <div>
+                <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>💬</div>
+                <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.5rem" }}>
+                  Choose or create a chat
+                </h2>
+                <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", margin: 0 }}>
+                  Your AI conversation will appear here.
+                </p>
               </div>
             </div>
-          </>
-        )}
-      </main>
+          ) : (
+            <>
+              <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+                <h2 style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.2rem" }}>
+                  {selectedChat.title}
+                </h2>
+                <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0 }}>
+                  Ask questions based on your uploaded study materials.
+                </p>
+              </div>
+
+              <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1.5rem" }}>
+                <ChatMessages messages={chatMessages} />
+                {loading && (
+                  <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "1rem" }}>
+                    AI is thinking...
+                  </div>
+                )}
+              </div>
+
+              {error && (
+                <div className="status-error" style={{ margin: "0 1.25rem 0.75rem" }}>
+                  {error}
+                </div>
+              )}
+
+              <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-surface)", flexShrink: 0 }}>
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <input
+                    type="text"
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !loading && handleAskAi()}
+                    placeholder={messages.askAi.questionPlaceholder}
+                    className="input-base"
+                    style={{ flex: 1 }}
+                  />
+                  <button onClick={handleAskAi} disabled={loading} className="btn btn-primary" style={{ flexShrink: 0 }}>
+                    {loading ? messages.askAi.loading : messages.askAi.submit}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

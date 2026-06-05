@@ -3,19 +3,19 @@ const { db, admin } = require("./firebase");
 const DEFAULT_USER_ID = "defaultUser";
 const DEFAULT_PROJECT_ID = "defaultProject";
 
-function getConversationChatsCollection(type) {
+function getConversationChatsCollection(type, projectId = DEFAULT_PROJECT_ID) {
   return db
     .collection("users")
     .doc(DEFAULT_USER_ID)
     .collection("projects")
-    .doc(DEFAULT_PROJECT_ID)
+    .doc(projectId)
     .collection("conversations")
     .doc(type)
     .collection("chats");
 }
 
-async function createChat(type, title) {
-  const chatRef = getConversationChatsCollection(type).doc();
+async function createChat(type, title, projectId = DEFAULT_PROJECT_ID) {
+  const chatRef = getConversationChatsCollection(type, projectId).doc();
 
   await chatRef.set({
     title,
@@ -29,8 +29,8 @@ async function createChat(type, title) {
   };
 }
 
-async function addMessageToChat(type, chatId, message) {
-  const chatRef = getConversationChatsCollection(type).doc(chatId);
+async function addMessageToChat(type, chatId, message, projectId = DEFAULT_PROJECT_ID) {
+  const chatRef = getConversationChatsCollection(type, projectId).doc(chatId);
 
   await chatRef.collection("messages").add({
     ...message,
@@ -42,8 +42,8 @@ async function addMessageToChat(type, chatId, message) {
   });
 }
 
-async function getChats(type) {
-  const snapshot = await getConversationChatsCollection(type)
+async function getChats(type, projectId = DEFAULT_PROJECT_ID) {
+  const snapshot = await getConversationChatsCollection(type, projectId)
     .orderBy("updatedAt", "desc")
     .get();
 
@@ -53,8 +53,8 @@ async function getChats(type) {
   }));
 }
 
-async function getChatMessages(type, chatId) {
-  const snapshot = await getConversationChatsCollection(type)
+async function getChatMessages(type, chatId, projectId = DEFAULT_PROJECT_ID) {
+  const snapshot = await getConversationChatsCollection(type, projectId)
     .doc(chatId)
     .collection("messages")
     .orderBy("createdAt", "asc")

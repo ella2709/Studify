@@ -3,9 +3,16 @@ const materialsRepository = require("../firebase/materialsRepository");
 const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
 const { generateEmbedding } = require("../services/embeddingService");
 
+const DEFAULT_PROJECT_ID = "defaultProject";
+
+function getProjectId(req) {
+  return req.body.projectId || req.query.projectId || DEFAULT_PROJECT_ID;
+}
+
 async function uploadMaterials(req, res) {
   try {
     const files = req.files;
+    const projectId = getProjectId(req);
 
     if (!files || files.length === 0) {
       return res.status(400).json({ error: "No files were uploaded" });
@@ -41,7 +48,7 @@ async function uploadMaterials(req, res) {
         chunks: chunkObjects,
       };
 
-      await materialsRepository.addMaterial(material);
+      await materialsRepository.addMaterial(material, projectId);
 
       savedFiles.push({
         id: material.id,
@@ -65,13 +72,11 @@ async function uploadMaterials(req, res) {
   }
 }
 
-module.exports = {
-  uploadMaterials,
-};
-
 async function getMaterials(req, res) {
   try {
-    const files = await materialsRepository.getAllMaterialsMetadata();
+    const projectId = getProjectId(req);
+    const files = await materialsRepository.getAllMaterialsMetadata(projectId);
+
     res.json({ files });
   } catch (err) {
     console.error("GET MATERIALS ERROR:", err);
@@ -81,10 +86,14 @@ async function getMaterials(req, res) {
   }
 }
 
-
 async function getMaterialById(req, res) {
   try {
-    const material = await materialsRepository.getMaterialById(req.params.id);
+    const projectId = getProjectId(req);
+
+    const material = await materialsRepository.getMaterialById(
+      req.params.id,
+      projectId
+    );
 
     if (!material) {
       return res.status(404).json({ error: "Material not found" });
@@ -98,8 +107,6 @@ async function getMaterialById(req, res) {
     });
   }
 }
-
-
 
 module.exports = {
   uploadMaterials,
