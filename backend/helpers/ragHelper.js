@@ -1,4 +1,4 @@
-const { generateEmbedding } = require("./embeddingService");
+const { generateEmbedding } = require("./embeddingHelper");
 const { vectorsSimilarity } = require("../utils/vectorUtils");
 
 async function retrieveRelevantChunks(materials, query, limit = 5) {

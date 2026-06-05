@@ -1,12 +1,16 @@
 const crypto = require("crypto");
-const materialsRepository = require("../firebase/materialsRepository");
+const materialsRepository = require("../services/materialService");
 const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
-const { generateEmbedding } = require("../services/embeddingService");
-
-const DEFAULT_PROJECT_ID = "defaultProject";
+const { generateEmbedding } = require("../helpers/embeddingHelper");
 
 function getProjectId(req) {
-  return req.body.projectId || req.query.projectId || DEFAULT_PROJECT_ID;
+  const projectId = req.body?.projectId || req.query?.projectId || req.params?.projectId;
+
+  if (!projectId) {
+    throw new Error("Missing projectId");
+  }
+
+  return projectId;
 }
 
 async function uploadMaterials(req, res) {
@@ -43,21 +47,12 @@ async function uploadMaterials(req, res) {
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
-        uploadedAt: new Date().toISOString(),
         text: normalizedText,
         chunks: chunkObjects,
       };
 
-      await materialsRepository.addMaterial(material, projectId);
-
-      savedFiles.push({
-        id: material.id,
-        originalName: material.originalName,
-        mimeType: material.mimeType,
-        size: material.size,
-        uploadedAt: material.uploadedAt,
-        chunksCount: material.chunks.length,
-      });
+      const savedMaterial = await materialsRepository.addMaterial(material, projectId);
+      savedFiles.push(savedMaterial);
     }
 
     res.status(201).json({
@@ -99,7 +94,7 @@ async function getMaterialById(req, res) {
       return res.status(404).json({ error: "Material not found" });
     }
 
-    res.json(material);
+    res.json({ material });
   } catch (err) {
     console.error("GET MATERIAL BY ID ERROR:", err);
     res.status(500).json({
@@ -108,8 +103,25 @@ async function getMaterialById(req, res) {
   }
 }
 
+async function removeMaterial(req, res) {
+  try {
+    const projectId = getProjectId(req);
+    const { id } = req.params;
+
+    await materialsRepository.removeMaterial(id, projectId);
+
+    res.json({ message: "File deleted successfully", id });
+  } catch (err) {
+    console.error("REMOVE MATERIAL ERROR:", err);
+    res.status(500).json({
+      error: err?.message || "Failed to delete material",
+    });
+  }
+}
+
 module.exports = {
   uploadMaterials,
   getMaterials,
   getMaterialById,
+  removeMaterial,
 };

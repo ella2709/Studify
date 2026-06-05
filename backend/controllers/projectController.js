@@ -1,8 +1,8 @@
-const projectsRepository = require("../firebase/projectsRepository");
+const projectService = require("../services/projectService");
 
 async function getProjects(req, res) {
   try {
-    const projects = await projectsRepository.getProjects();
+    const projects = await projectService.getProjects();
     res.json({ projects });
   } catch (err) {
     console.error("GET PROJECTS ERROR:", err);
@@ -16,7 +16,7 @@ async function getProjectById(req, res) {
   try {
     const { projectId } = req.params;
 
-    const project = await projectsRepository.getProjectById(projectId);
+    const project = await projectService.getProjectById(projectId);
 
     if (!project) {
       return res.status(404).json({ error: "Project not found" });
@@ -39,7 +39,7 @@ async function createProject(req, res) {
       return res.status(400).json({ error: "Missing project name" });
     }
 
-    const project = await projectsRepository.createProject(name.trim());
+    const project = await projectService.createProject(name.trim());
 
     res.status(201).json({ project });
   } catch (err) {

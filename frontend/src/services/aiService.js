@@ -2,14 +2,15 @@ import { API } from "../api";
 
 async function handleResponse(res) {
   const data = await res.json();
+
   if (!res.ok) {
     throw new Error(data.error || "Request failed");
   }
+
   return data;
 }
 
 function withProjectId(base, projectId) {
-  if (!projectId) return base;
   const sep = base.includes("?") ? "&" : "?";
   return `${base}${sep}projectId=${encodeURIComponent(projectId)}`;
 }
@@ -22,6 +23,7 @@ export async function createAskChat(title, projectId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, projectId }),
   });
+
   return handleResponse(res);
 }
 
@@ -34,6 +36,7 @@ export async function getAskChatMessages(chatId, projectId) {
   const res = await fetch(
     withProjectId(`${API.ASK_CHATS}/${chatId}/messages`, projectId)
   );
+
   return handleResponse(res);
 }
 
@@ -43,6 +46,7 @@ export async function askAi(chatId, question, projectId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chatId, question, projectId }),
   });
+
   return handleResponse(res);
 }
 
@@ -54,6 +58,7 @@ export async function createSummarizeChat(title, projectId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title, projectId }),
   });
+
   return handleResponse(res);
 }
 
@@ -66,6 +71,7 @@ export async function getSummarizeChatMessages(chatId, projectId) {
   const res = await fetch(
     withProjectId(`${API.SUMMARIZE_CHATS}/${chatId}/messages`, projectId)
   );
+
   return handleResponse(res);
 }
 
@@ -75,5 +81,6 @@ export async function summarizeAi(chatId, topic, projectId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chatId, topic, projectId }),
   });
+
   return handleResponse(res);
 }

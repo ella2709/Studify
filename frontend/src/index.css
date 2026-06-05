@@ -259,6 +259,15 @@ textarea.input-base { resize: vertical; min-height: 90px; }
   gap: 1rem;
 }
 
+.project-meta-pill {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background-color: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.625rem;
+}
+
 /* Chat layout (questions / summarize) */
 .chat-layout {
   display: grid;

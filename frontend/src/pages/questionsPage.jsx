@@ -7,7 +7,7 @@ import {
   getAskChatMessages,
 } from "../services/aiService.js";
 import messages from "../messages.js";
-import ChatMessages from "../components/ChatMessages";
+import ChatMessages from "../components/chatMessages.jsx";
 
 function ProjectBreadcrumb() {
   const { projectId } = useParams();
@@ -124,12 +124,7 @@ function QuestionsPage() {
     try {
       setLoading(true);
       const result = await askAi(selectedChat.id, question, projectId);
-      const assistantMessage = {
-        role: "assistant",
-        content: result.answer || "",
-        sources: result.sources || [],
-      };
-      setChatMessages((prev) => [...prev, assistantMessage]);
+      setChatMessages((prev) => [...prev, result.message]);
       setQuestion("");
       await loadChats();
     } catch (err) {

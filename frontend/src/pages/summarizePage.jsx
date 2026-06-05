@@ -7,7 +7,7 @@ import {
   getSummarizeChatMessages,
 } from "../services/aiService.js";
 import messages from "../messages.js";
-import ChatMessages from "../components/ChatMessages";
+import ChatMessages from "../components/chatMessages.jsx";
 
 function ProjectBreadcrumb() {
   const { projectId } = useParams();
@@ -124,14 +124,7 @@ function SummarizePage() {
     try {
       setLoading(true);
       const result = await summarizeAi(selectedChat.id, topic, projectId);
-      const assistantMessage = {
-        role: "assistant",
-        content: result.summary || "",
-        sources: result.basedOnFiles
-          ? result.basedOnFiles.map((f) => ({ fileName: f }))
-          : result.sources || [],
-      };
-      setChatMessages((prev) => [...prev, assistantMessage]);
+      setChatMessages((prev) => [...prev, result.message]);
       setTopic("");
       await loadChats();
     } catch (err) {

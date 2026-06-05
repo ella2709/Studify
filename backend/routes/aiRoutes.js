@@ -1,15 +1,18 @@
 const express = require("express");
 
 const {
-  createAskAIChat,
-  createSummarizeAIChat,
   askRag,
   summarizeRag,
+} = require("../controllers/aiController");
+
+const {
+  createAskAIChat,
+  createSummarizeAIChat,
   getAskAIChats,
   getSummarizeAIChats,
   getAskAIChatMessages,
   getSummarizeAIChatMessages,
-} = require("../controllers/aiController");
+} = require("../controllers/conversationsController");
 
 const router = express.Router();
 

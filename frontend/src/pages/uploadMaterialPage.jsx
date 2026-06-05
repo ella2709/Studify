@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import { API } from "../api";
+
 import messages from "../messages";
-import { AttachmentIcon } from "../components/IconsAndButtons";
+import { AttachmentIcon } from "../components/iconsAndButtons";
+import {
+  getMaterials,
+  uploadMaterials,
+  deleteMaterial,
+} from "../services/materialService";
 
 function formatFileSize(bytes) {
   if (!bytes && bytes !== 0) return "";
@@ -13,6 +18,7 @@ function formatFileSize(bytes) {
 
 function getFileBadge(fileName = "") {
   const n = fileName.toLowerCase();
+
   if (n.endsWith(".pdf")) return "PDF";
   if (n.endsWith(".docx") || n.endsWith(".doc")) return "DOC";
   if (n.endsWith(".pptx") || n.endsWith(".ppt")) return "PPT";
@@ -20,6 +26,7 @@ function getFileBadge(fileName = "") {
   if (n.endsWith(".txt")) return "TXT";
   if (n.endsWith(".md")) return "MD";
   if (n.endsWith(".csv")) return "CSV";
+
   return "FILE";
 }
 
@@ -27,7 +34,6 @@ function formatUploadDate(file) {
   const rawDate = file.createdAt || file.uploadedAt || file.created_at;
   if (!rawDate) return "";
 
-  // Firestore Timestamp: { _seconds, _nanoseconds } (Admin SDK) or { seconds, nanoseconds }
   if (typeof rawDate === "object" && !(rawDate instanceof Date)) {
     const secs = rawDate._seconds ?? rawDate.seconds;
     if (typeof secs === "number") return new Date(secs * 1000).toLocaleDateString();
@@ -41,12 +47,18 @@ function formatUploadDate(file) {
 function ProjectBreadcrumb() {
   const { projectId } = useParams();
   const location = useLocation();
+
   if (!projectId) return null;
+
   const name =
     location.state?.projectName ||
-    projectId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    projectId
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+
   return (
-    <div style={{ marginBottom: "1.5rem" }}>
+    <div style={{ marginBottom: "0.75rem" }}>
       <Link
         to={`/project/${projectId}`}
         state={{ projectName: name }}
@@ -57,15 +69,9 @@ function ProjectBreadcrumb() {
           display: "inline-flex",
           alignItems: "center",
           gap: "0.375rem",
-          transition: "color 0.14s",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
+        <span>‹</span>
         {name}
       </Link>
     </div>
@@ -84,18 +90,13 @@ function UploadMaterialPage() {
   async function loadUploadedFiles() {
     try {
       setLoadingList(true);
-      const url = projectId
-        ? `${API.GET_MATERIALS}?projectId=${encodeURIComponent(projectId)}`
-        : API.GET_MATERIALS;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (!response.ok) {
-        setStatus({ type: "error", text: data.error || messages.general.error });
-        return;
-      }
-      setUploadedFiles(data.files || []);
+      const files = await getMaterials(projectId);
+      setUploadedFiles(files);
     } catch (error) {
-      setStatus({ type: "error", text: error.message || messages.general.error });
+      setStatus({
+        type: "error",
+        text: error.message || messages.general.error,
+      });
     } finally {
       setLoadingList(false);
     }
@@ -103,8 +104,9 @@ function UploadMaterialPage() {
 
   useEffect(() => {
     setUploadedFiles([]);
+    setStatus({ type: "", text: "" });
     loadUploadedFiles();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   function handleFileChange(event) {
@@ -115,157 +117,286 @@ function UploadMaterialPage() {
 
   async function handleUpload() {
     setStatus({ type: "", text: "" });
+
     if (selectedFiles.length === 0) {
-      setStatus({ type: "error", text: messages.upload.noFilesSelected });
+      setStatus({
+        type: "error",
+        text: messages.upload.noFilesSelected,
+      });
       return;
     }
+
     try {
       setLoading(true);
-      const formData = new FormData();
-      selectedFiles.forEach((file) => formData.append("files", file));
-      const uploadUrl = projectId
-        ? `${API.UPLOAD_MATERIALS}?projectId=${encodeURIComponent(projectId)}`
-        : API.UPLOAD_MATERIALS;
-      const response = await fetch(uploadUrl, { method: "POST", body: formData });
-      const data = await response.json();
-      if (!response.ok) {
-        setStatus({ type: "error", text: data.error || messages.upload.uploadError });
-        return;
-      }
-      setStatus({ type: "success", text: messages.upload.uploadSuccess });
+      await uploadMaterials(projectId, selectedFiles);
+
+      setStatus({
+        type: "success",
+        text: messages.upload.uploadSuccess,
+      });
+
       setSelectedFiles([]);
       await loadUploadedFiles();
     } catch (error) {
-      setStatus({ type: "error", text: error.message || messages.upload.uploadError });
+      setStatus({
+        type: "error",
+        text: error.message || messages.upload.uploadError,
+      });
     } finally {
       setLoading(false);
     }
   }
 
+  async function handleDeleteFile(fileId) {
+    try {
+      setStatus({ type: "", text: "" });
+
+      await deleteMaterial(projectId, fileId);
+      await loadUploadedFiles();
+
+      setStatus({
+        type: "success",
+        text: "File deleted successfully",
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        text: error.message || "Failed to delete file",
+      });
+    }
+  }
+
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
       <ProjectBreadcrumb />
 
-      {/* Page header */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <h2 style={{ fontSize: "1.625rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.375rem" }}>
-          {messages.upload.title}
-        </h2>
-        <p style={{ fontSize: "0.9375rem", color: "var(--text-2)", margin: 0 }}>
-          Manage your study resources
-        </p>
-      </div>
-
-      {/* Status banner */}
-      {status.text && (
+      <div
+        style={{
+          backgroundColor: "var(--bg-surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "1rem",
+          boxShadow: "var(--shadow-card)",
+          overflow: "hidden",
+        }}
+      >
         <div
-          className={status.type === "error" ? "status-error" : "status-success"}
-          style={{ marginBottom: "1.25rem" }}
-        >
-          {status.text}
-        </div>
-      )}
-
-      <div className="upload-layout">
-        {/* ── Upload card ── */}
-        <section
           style={{
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "1rem",
-            padding: "1.5rem",
-            boxShadow: "var(--shadow-card)",
+            padding: "1.25rem 1.5rem 1rem",
+            borderBottom: "1px solid var(--border)",
+            background:
+              "linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-raised) 100%)",
           }}
         >
-          <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.375rem" }}>
-            Upload Files
-          </h3>
-          <p style={{ fontSize: "0.875rem", color: "var(--text-2)", margin: "0 0 1.25rem", lineHeight: 1.5 }}>
-            {messages.upload.description}
+          <p
+            style={{
+              margin: "0 0 0.35rem",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--accent)",
+            }}
+          >
+            Study Materials
           </p>
 
-          {/* Drop zone */}
+          <h2
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: 800,
+              color: "var(--text)",
+              margin: "0 0 0.35rem",
+              lineHeight: 1.15,
+            }}
+          >
+            Upload and manage files
+          </h2>
+
+          <p
+            style={{
+              fontSize: "0.9rem",
+              color: "var(--text-2)",
+              margin: 0,
+              maxWidth: 620,
+              lineHeight: 1.45,
+            }}
+          >
+            Add materials that will be used for summaries, questions, and AI-based learning.
+          </p>
+        </div>
+
+        <div style={{ padding: "1rem 1.5rem 1.25rem" }}>
+          {status.text && (
+            <div
+              className={status.type === "error" ? "status-error" : "status-success"}
+              style={{ marginBottom: "0.875rem" }}
+            >
+              {status.text}
+            </div>
+          )}
+
           <div
             style={{
               border: "2px dashed var(--border)",
               borderRadius: "0.875rem",
               backgroundColor: "var(--bg-raised)",
-              padding: "2rem 1.5rem",
-              textAlign: "center",
-              marginBottom: "1.125rem",
+              padding: "1rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "1rem",
+              marginBottom: "0.875rem",
+              flexWrap: "wrap",
             }}
           >
-            <input
-              id="file-upload"
-              type="file"
-              multiple
-              accept=".txt,.md,.json,.csv,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <label
-              htmlFor="file-upload"
+            <div
               style={{
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                width: 52,
-                height: 52,
-                borderRadius: "0.875rem",
-                backgroundColor: "var(--bg-surface)",
-                border: "1px solid var(--border)",
-                cursor: "pointer",
-                color: "var(--text-2)",
-                boxShadow: "var(--shadow-sm)",
-                transition: "background-color 0.14s",
-                marginBottom: "0.875rem",
+                gap: "0.875rem",
+                minWidth: 260,
+                flex: 1,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-muted)")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--bg-surface)")}
             >
-              <AttachmentIcon />
-            </label>
-            <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--text)", margin: "0 0 0.25rem" }}>
-              Drag &amp; Drop Files
-            </p>
-            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: "0 0 1rem" }}>
-              or choose from your computer
-            </p>
-            <label htmlFor="file-upload" className="btn btn-secondary" style={{ cursor: "pointer" }}>
-              {messages.upload.selectFiles}
-            </label>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: "0.75rem",
+                  backgroundColor: "var(--bg-surface)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-sm)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--text-2)",
+                  flexShrink: 0,
+                }}
+              >
+                <AttachmentIcon />
+              </div>
+
+              <div>
+                <h3
+                  style={{
+                    fontSize: "1rem",
+                    fontWeight: 700,
+                    color: "var(--text)",
+                    margin: "0 0 0.15rem",
+                  }}
+                >
+                  Choose files to upload
+                </h3>
+
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--text-muted)",
+                    margin: 0,
+                    lineHeight: 1.35,
+                  }}
+                >
+                  Supported: txt, md, json, csv, pdf, docx, pptx, xlsx.
+                </p>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.625rem",
+                flexWrap: "wrap",
+              }}
+            >
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                accept=".txt,.md,.json,.csv,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              <label
+                htmlFor="file-upload"
+                className="btn btn-secondary"
+                style={{ cursor: "pointer", padding: "0.5rem 0.875rem" }}
+              >
+                Select files
+              </label>
+
+              <button
+                type="button"
+                onClick={handleUpload}
+                disabled={loading || selectedFiles.length === 0}
+                className="btn btn-primary"
+                style={{ padding: "0.5rem 0.875rem" }}
+              >
+                {loading ? messages.upload.uploading : "Upload"}
+              </button>
+            </div>
           </div>
 
-          <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: selectedFiles.length > 0 ? "0.875rem" : "1.125rem" }}>
-            {selectedFiles.length === 0
-              ? "No files selected"
-              : `${selectedFiles.length} file${selectedFiles.length === 1 ? "" : "s"} selected`}
-          </p>
-
           {selectedFiles.length > 0 && (
-            <div style={{ marginBottom: "1.125rem" }}>
-              <p style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--text)", margin: "0 0 0.5rem" }}>
-                {messages.upload.selectedFiles}
+            <div
+              style={{
+                marginBottom: "1rem",
+                padding: "0.75rem",
+                borderRadius: "0.75rem",
+                backgroundColor: "var(--bg-surface)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  margin: "0 0 0.5rem",
+                }}
+              >
+                Selected files ({selectedFiles.length})
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                  gap: "0.5rem",
+                }}
+              >
                 {selectedFiles.map((file, index) => (
                   <div
                     key={`${file.name}-${index}`}
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: "0.75rem",
-                      padding: "0.5rem 0.75rem",
-                      backgroundColor: "var(--bg-raised)",
-                      borderRadius: "0.5rem",
                       border: "1px solid var(--border)",
+                      borderRadius: "0.625rem",
+                      backgroundColor: "var(--bg-raised)",
+                      padding: "0.625rem",
                     }}
                   >
-                    <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--text)", wordBreak: "break-all" }}>
+                    <p
+                      style={{
+                        margin: "0 0 0.25rem",
+                        fontSize: "0.8125rem",
+                        fontWeight: 600,
+                        color: "var(--text)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={file.name}
+                    >
                       {file.name}
-                    </span>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", flexShrink: 0 }}>
+                    </p>
+
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--text-muted)",
+                      }}
+                    >
                       {formatFileSize(file.size)}
                     </span>
                   </div>
@@ -274,51 +405,62 @@ function UploadMaterialPage() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleUpload}
-            disabled={loading || selectedFiles.length === 0}
-            className="btn btn-primary"
-            style={{ width: "100%" }}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "1rem",
+              marginBottom: "0.75rem",
+              paddingTop: "0.25rem",
+            }}
           >
-            {loading ? messages.upload.uploading : messages.upload.uploadButton}
-          </button>
-        </section>
-
-        {/* ── Uploaded files list ── */}
-        <section
-          style={{
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "1rem",
-            padding: "1.5rem",
-            boxShadow: "var(--shadow-card)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.125rem" }}>
             <div>
-              <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.25rem" }}>
-                {messages.upload.uploadedFilesTitle}
+              <h3
+                style={{
+                  fontSize: "1.0625rem",
+                  fontWeight: 800,
+                  color: "var(--text)",
+                  margin: "0 0 0.15rem",
+                }}
+              >
+                Uploaded files
               </h3>
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0 }}>
-                Files available for AI learning and retrieval.
+
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-muted)",
+                  margin: 0,
+                }}
+              >
+                {uploadedFiles.length === 0
+                  ? "No files have been uploaded yet."
+                  : `${uploadedFiles.length} file${
+                      uploadedFiles.length === 1 ? "" : "s"
+                    } available in this project.`}
               </p>
             </div>
+
             <button
               type="button"
               onClick={loadUploadedFiles}
               disabled={loadingList}
               className="btn btn-secondary"
-              style={{ fontSize: "0.875rem", padding: "0.4375rem 1rem" }}
+              style={{ padding: "0.5rem 0.875rem" }}
             >
               {loadingList ? messages.general.loading : messages.general.refresh}
             </button>
           </div>
 
           {loadingList && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="skeleton" style={{ height: 72, borderRadius: "0.875rem" }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              {[1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="skeleton"
+                  style={{ height: 58, borderRadius: "0.75rem" }}
+                />
               ))}
             </div>
           )}
@@ -326,58 +468,119 @@ function UploadMaterialPage() {
           {!loadingList && uploadedFiles.length === 0 && (
             <div
               style={{
-                padding: "2rem",
                 borderRadius: "0.875rem",
                 border: "1px solid var(--border)",
                 backgroundColor: "var(--bg-raised)",
-                fontSize: "0.9375rem",
-                color: "var(--text-muted)",
+                padding: "1.25rem",
                 textAlign: "center",
               }}
             >
-              {messages.upload.emptyList}
+              <div style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>
+                📄
+              </div>
+
+              <h4
+                style={{
+                  fontSize: "0.95rem",
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  margin: "0 0 0.25rem",
+                }}
+              >
+                No study files yet
+              </h4>
+
+              <p
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--text-muted)",
+                  margin: 0,
+                }}
+              >
+                Select files above and upload them to start using this project.
+              </p>
             </div>
           )}
 
           {!loadingList && uploadedFiles.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
               {uploadedFiles.map((file) => (
                 <div
                   key={file.id}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "1rem",
-                    padding: "0.875rem 1rem",
+                    gap: "0.875rem",
+                    padding: "0.75rem 0.875rem",
                     backgroundColor: "var(--bg-raised)",
                     border: "1px solid var(--border)",
-                    borderRadius: "0.875rem",
+                    borderRadius: "0.75rem",
                   }}
                 >
                   <div className="file-badge">{getFileBadge(file.originalName)}</div>
+
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--text)", margin: "0 0 0.25rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        margin: "0 0 0.25rem",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={file.originalName}
+                    >
                       {file.originalName}
                     </p>
-                    <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-                        {messages.upload.fileSize}: {formatFileSize(file.size)}
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.5rem",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span className="project-meta-pill">
+                        {formatFileSize(file.size)}
                       </span>
-                      <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
-                        {messages.upload.fileType}: {file.mimeType || "unknown"}
+
+                      <span className="project-meta-pill">
+                        {file.mimeType || "unknown"}
                       </span>
+
                       {formatUploadDate(file) && (
-                        <span style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                        <span className="project-meta-pill">
                           {formatUploadDate(file)}
+                        </span>
+                      )}
+
+                      {file.chunksCount !== undefined && (
+                        <span className="project-meta-pill">
+                          {file.chunksCount} chunks
                         </span>
                       )}
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteFile(file.id)}
+                    className="btn btn-secondary"
+                    style={{
+                      fontSize: "0.75rem",
+                      padding: "0.35rem 0.65rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    Delete
+                  </button>
                 </div>
               ))}
             </div>
           )}
-        </section>
+        </div>
       </div>
     </div>
   );

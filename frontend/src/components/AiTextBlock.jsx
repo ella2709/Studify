@@ -1,5 +1,5 @@
 import ReactMarkdown from "react-markdown";
-import { getTextAlign, getTextDirection } from "../helpers/generalFunctions";
+import { getTextAlign, getTextDirection } from "../helpers/textHelpers";
 
 function AiTextBlock({ text, className = "" }) {
   const direction = getTextDirection(text || "");

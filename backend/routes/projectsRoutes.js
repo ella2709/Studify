@@ -1,10 +1,5 @@
 const express = require("express");
-
-const {
-  getProjects,
-  getProjectById,
-  createProject,
-} = require("../controllers/projectsController");
+const { getProjects, getProjectById, createProject,} = require("../controllers/projectController");
 
 const router = express.Router();
 
