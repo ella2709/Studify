@@ -1,16 +1,31 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { HamburgerIcon, SearchIcon, HomeIcon } from "./iconsAndButtons";
-import { useLocation } from "react-router-dom";
 
-
-export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCreateProject, onNavClick }) {
+/* ── Sidebar ─────────────────────────────────────────────── */
+export function Sidebar({
+  projects,
+  projectsLoading,
+  isDark,
+  onToggleDark,
+  onCreateProject,
+  onNavClick,
+}) {
   const location = useLocation();
 
   return (
-    <>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        overflow: "hidden",
+      }}
+    >
+      {/* ── Logo ── */}
       <div
         style={{
-          padding: "1.375rem 1.25rem 1.125rem",
+          padding: "1.25rem 1.125rem 1rem",
           borderBottom: "1px solid var(--sidebar-border)",
           flexShrink: 0,
         }}
@@ -25,41 +40,33 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
             textDecoration: "none",
           }}
         >
-          <div
+          <img
+            src="/Logo.png"
+            alt="Studify"
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: "0.625rem",
-              backgroundColor: "var(--accent)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 800,
-              color: "#fff",
-              fontSize: "1.125rem",
+              height: 34,
+              width: 34,
+              objectFit: "contain",
+              borderRadius: "0.5rem",
               flexShrink: 0,
-              boxShadow: "0 2px 8px rgba(200,167,122,0.4)",
             }}
-          >
-            S
-          </div>
-
+          />
           <div>
             <div
               style={{
                 color: "var(--sidebar-text)",
                 fontWeight: 700,
                 fontSize: "1rem",
-                lineHeight: 1.25,
+                lineHeight: 1.2,
               }}
             >
               Studify
             </div>
-
             <div
               style={{
                 color: "var(--sidebar-text-2)",
                 fontSize: "0.6875rem",
+                marginTop: 1,
               }}
             >
               AI Learning Workspace
@@ -68,7 +75,15 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
         </Link>
       </div>
 
-      <nav style={{ flex: 1, padding: "0.875rem 0.875rem 0", overflowY: "auto" }}>
+      {/* ── Nav ── */}
+      <nav
+        style={{
+          flex: 1,
+          padding: "0.875rem 0.875rem 0",
+          overflowY: "auto",
+          overflowX: "hidden",
+        }}
+      >
         <SidebarNavItem
           to="/"
           label="Home"
@@ -77,6 +92,7 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
           onClick={onNavClick}
         />
 
+        {/* Projects section */}
         <div style={{ marginTop: "1.5rem" }}>
           <div
             style={{
@@ -116,6 +132,17 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
                 fontSize: "1rem",
                 lineHeight: 1,
                 padding: 0,
+                transition: "background-color 0.15s, color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255,255,255,0.18)";
+                e.currentTarget.style.color = "var(--sidebar-text)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255,255,255,0.09)";
+                e.currentTarget.style.color = "var(--sidebar-text-2)";
               }}
             >
               +
@@ -128,7 +155,7 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
                 <div
                   key={i}
                   className="skeleton"
-                  style={{ height: 32, marginBottom: 4, borderRadius: "0.5rem" }}
+                  style={{ height: 30, marginBottom: 4, borderRadius: "0.5rem" }}
                 />
               ))}
             </div>
@@ -141,12 +168,23 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
                 width: "100%",
                 padding: "0.5rem 0.625rem",
                 background: "none",
-                border: "1px dashed rgba(255,255,255,0.12)",
+                border: "1px dashed rgba(255,255,255,0.14)",
                 borderRadius: "0.5rem",
                 color: "var(--sidebar-text-2)",
                 fontSize: "0.8125rem",
                 cursor: "pointer",
                 textAlign: "center",
+                transition: "border-color 0.15s, color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor =
+                  "rgba(255,255,255,0.28)";
+                e.currentTarget.style.color = "var(--sidebar-text)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor =
+                  "rgba(255,255,255,0.14)";
+                e.currentTarget.style.color = "var(--sidebar-text-2)";
               }}
             >
               + Create project
@@ -159,36 +197,19 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
             const isActive = location.pathname.startsWith(path);
 
             return (
-              <Link
+              <SidebarProjectItem
                 key={project.id}
                 to={path}
-                state={{ projectName: name }}
+                name={name}
+                isActive={isActive}
                 onClick={onNavClick}
-                title={name}
-                style={{
-                  display: "block",
-                  padding: "0.5rem 0.625rem",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive
-                    ? "var(--sidebar-active-text)"
-                    : "var(--sidebar-text-2)",
-                  backgroundColor: isActive ? "var(--sidebar-active)" : "transparent",
-                  textDecoration: "none",
-                  marginBottom: 2,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {name}
-              </Link>
+              />
             );
           })}
         </div>
       </nav>
 
+      {/* ── Dark mode toggle ── */}
       <div
         style={{
           padding: "0.875rem 1.125rem",
@@ -205,7 +226,7 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
             color: "var(--sidebar-text-2)",
             display: "flex",
             alignItems: "center",
-            gap: "0.375rem",
+            gap: "0.4rem",
           }}
         >
           <span>{isDark ? "🌙" : "☀️"}</span>
@@ -225,6 +246,7 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
             position: "relative",
             padding: 0,
             flexShrink: 0,
+            transition: "background-color 0.2s",
           }}
         >
           <span
@@ -236,17 +258,17 @@ export function Sidebar({ projects, projectsLoading, isDark, onToggleDark, onCre
               height: 18,
               borderRadius: "50%",
               backgroundColor: "#fff",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
-              transition: "left 0.2s",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+              transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
             }}
           />
         </button>
       </div>
-    </>
+    </div>
   );
 }
 
-
+/* ── Sidebar nav item ────────────────────────────────────── */
 export function SidebarNavItem({ to, label, icon, active, onClick }) {
   return (
     <Link
@@ -264,6 +286,19 @@ export function SidebarNavItem({ to, label, icon, active, onClick }) {
         backgroundColor: active ? "var(--sidebar-active)" : "transparent",
         textDecoration: "none",
         marginBottom: 2,
+        transition: "background-color 0.15s, color 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = "var(--sidebar-hover)";
+          e.currentTarget.style.color = "var(--sidebar-text)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "var(--sidebar-text-2)";
+        }
       }}
     >
       {icon}
@@ -272,6 +307,48 @@ export function SidebarNavItem({ to, label, icon, active, onClick }) {
   );
 }
 
+/* ── Sidebar project item ────────────────────────────────── */
+function SidebarProjectItem({ to, name, isActive, onClick }) {
+  return (
+    <Link
+      to={to}
+      state={{ projectName: name }}
+      onClick={onClick}
+      title={name}
+      style={{
+        display: "block",
+        padding: "0.5rem 0.625rem",
+        borderRadius: "0.5rem",
+        fontSize: "0.875rem",
+        fontWeight: isActive ? 600 : 400,
+        color: isActive ? "var(--sidebar-active-text)" : "var(--sidebar-text-2)",
+        backgroundColor: isActive ? "var(--sidebar-active)" : "transparent",
+        textDecoration: "none",
+        marginBottom: 2,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        transition: "background-color 0.15s, color 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backgroundColor = "var(--sidebar-hover)";
+          e.currentTarget.style.color = "var(--sidebar-text)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "var(--sidebar-text-2)";
+        }
+      }}
+    >
+      {name}
+    </Link>
+  );
+}
+
+/* ── Top bar ─────────────────────────────────────────────── */
 export function TopBar({ isSidebarOpen, onToggleSidebar }) {
   return (
     <header
@@ -288,6 +365,7 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
         height: "var(--topbar-h)",
       }}
     >
+      {/* Hamburger button */}
       <button
         onClick={onToggleSidebar}
         aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
@@ -302,13 +380,23 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
           alignItems: "center",
           justifyContent: "center",
           color: "var(--text-2)",
+          transition: "background-color 0.15s, color 0.15s",
           flexShrink: 0,
           padding: 0,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "var(--bg-raised)";
+          e.currentTarget.style.color = "var(--text)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.color = "var(--text-2)";
         }}
       >
         <HamburgerIcon open={isSidebarOpen} />
       </button>
 
+      {/* Search bar */}
       <div
         style={{
           display: "flex",
@@ -323,6 +411,13 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
           height: 38,
           boxShadow: "var(--shadow-sm)",
           cursor: "text",
+          transition: "border-color 0.15s, box-shadow 0.15s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = "var(--border-2)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = "var(--border)";
         }}
       >
         <SearchIcon />
