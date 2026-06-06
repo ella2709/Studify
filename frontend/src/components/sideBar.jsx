@@ -69,7 +69,7 @@ export function Sidebar({
                 marginTop: 1,
               }}
             >
-              AI Learning Workspace
+              AI Study Assistant
             </div>
           </div>
         </Link>

@@ -21,3 +21,17 @@ export function safeFormatDate(value) {
 
   return null;
 }
+
+export function formatUploadDate(file) {
+  const rawDate = file.createdAt || file.uploadedAt || file.created_at;
+  if (!rawDate) return "";
+
+  if (typeof rawDate === "object" && !(rawDate instanceof Date)) {
+    const secs = rawDate._seconds ?? rawDate.seconds;
+    if (typeof secs === "number") return new Date(secs * 1000).toLocaleDateString();
+    return "";
+  }
+
+  const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
+}

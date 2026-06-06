@@ -5,7 +5,7 @@ const ASK_AI = "askAI";
 const SUMMARIZE_AI = "summarizeAI";
 
 function getProjectId(req) {
-  const projectId = req.body.projectId || req.query.projectId;
+  const projectId = req.body?.projectId || req.query?.projectId;
 
   if (!projectId || !projectId.trim()) {
     return null;
@@ -161,6 +161,38 @@ async function getSummarizeAIChatMessages(req, res) {
   }
 }
 
+async function deleteAskAIChat(req, res) {
+  try {
+    const { chatId } = req.params;
+    const projectId = getProjectId(req);
+
+    if (!projectId) return res.status(400).json({ error: "Missing projectId" });
+    if (!chatId) return res.status(400).json({ error: "Missing chatId" });
+
+    await conversationService.deleteChat(ASK_AI, chatId, projectId);
+
+    res.json({ deletedChatId: chatId });
+  } catch (err) {
+    res.status(500).json({ error: err?.message || "Failed to delete ask AI chat" });
+  }
+}
+
+async function deleteSummarizeAIChat(req, res) {
+  try {
+    const { chatId } = req.params;
+    const projectId = getProjectId(req);
+
+    if (!projectId) return res.status(400).json({ error: "Missing projectId" });
+    if (!chatId) return res.status(400).json({ error: "Missing chatId" });
+
+    await conversationService.deleteChat(SUMMARIZE_AI, chatId, projectId);
+
+    res.json({ deletedChatId: chatId });
+  } catch (err) {
+    res.status(500).json({ error: err?.message || "Failed to delete summarize AI chat" });
+  }
+}
+
 module.exports = {
   createAskAIChat,
   createSummarizeAIChat,
@@ -168,4 +200,6 @@ module.exports = {
   getSummarizeAIChats,
   getAskAIChatMessages,
   getSummarizeAIChatMessages,
+  deleteAskAIChat,
+  deleteSummarizeAIChat
 };

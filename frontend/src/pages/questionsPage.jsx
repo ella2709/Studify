@@ -1,21 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import {
-  askAi,
-  createAskChat,
-  getAskChats,
-  getAskChatMessages,
-} from "../services/aiService.js";
+import { askAi, createAskChat, getAskChats, getAskChatMessages, deleteAskChat } from "../services/conversationService.js";
 import messages from "../messages.js";
 import ChatMessages from "../components/chatMessages.jsx";
+import ConfirmDialog from "../components/ConfirmDialog.jsx";
 
 function ProjectBreadcrumb() {
   const { projectId } = useParams();
   const location = useLocation();
   if (!projectId) return null;
-  const name =
-    location.state?.projectName ||
-    projectId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  const name = location.state?.projectName || projectId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  
   return (
     <Link
       to={`/project/${projectId}`}
@@ -54,6 +49,7 @@ function QuestionsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingChats, setLoadingChats] = useState(false);
   const [error, setError] = useState("");
+  const [chatToDelete, setChatToDelete] = useState(null);
 
   useEffect(() => {
     setSelectedChat(null);
@@ -134,6 +130,24 @@ function QuestionsPage() {
     }
   }
 
+  async function handleDeleteChat() {
+    if (!chatToDelete) return;
+
+    try {
+      await deleteAskChat(chatToDelete.id, projectId);
+
+      if (selectedChat?.id === chatToDelete.id) {
+        setSelectedChat(null);
+        setChatMessages([]);
+      }
+
+      setChatToDelete(null);
+      await loadChats();
+    } catch (err) {
+      setError(err.message || "Failed to delete chat");
+    }
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--topbar-h) - 5rem)", minHeight: 480 }}>
       <ProjectBreadcrumb />
@@ -190,13 +204,48 @@ function QuestionsPage() {
               </div>
             )}
             {chats.map((chat) => (
-              <button
+              <div
                 key={chat.id}
-                onClick={() => handleSelectChat(chat)}
                 className={`chat-item${selectedChat?.id === chat.id ? " active" : ""}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "0.5rem",
+                }}
               >
-                {chat.title}
-              </button>
+                <button
+                  onClick={() => handleSelectChat(chat)}
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    background: "transparent",
+                    color: "inherit",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    font: "inherit",
+                  }}
+                >
+                  {chat.title}
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setChatToDelete(chat);
+                  }}
+                  title="Delete chat"
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--text-muted)",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                  }}
+                >
+                  ×
+                </button>
+              </div>
             ))}
           </div>
         </aside>
@@ -272,7 +321,16 @@ function QuestionsPage() {
           )}
         </main>
       </div>
-    </div>
+         <ConfirmDialog
+          open={!!chatToDelete}
+          title="Delete chat?"
+          message={`Are you sure you want to delete "${chatToDelete?.title}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleDeleteChat}
+          onCancel={() => setChatToDelete(null)}
+        />
+    </div> 
   );
 }
 

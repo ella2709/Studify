@@ -12,19 +12,7 @@ function getProjectsCollection() {
 }
 
 async function getProjects() {
-  console.log("Reading users/defaultUser/projects");
-
-  const userDoc = await db.collection("users").doc("defaultUser").get();
-  console.log("defaultUser exists?", userDoc.exists);
-  console.log("defaultUser data:", userDoc.data());
-
-  const collections = await db.collection("users").doc("defaultUser").listCollections();
-  console.log("sub collections:", collections.map((c) => c.id));
-
   const snapshot = await getProjectsCollection().get();
-  console.log("Projects count:", snapshot.docs.length);
-  console.log("Project ids:", snapshot.docs.map((doc) => doc.id));
-
   return snapshot.docs.map((doc) => toProjectDto(doc));
 }
 

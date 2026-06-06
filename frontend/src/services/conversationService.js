@@ -50,6 +50,15 @@ export async function askAi(chatId, question, projectId) {
   return handleResponse(res);
 }
 
+export async function deleteAskChat(chatId, projectId) {
+  const res = await fetch(
+    withProjectId(`${API.ASK_CHATS}/${chatId}`, projectId),
+    { method: "DELETE" }
+  );
+
+  return handleResponse(res);
+}
+
 // ---------- SUMMARIZE AI ----------
 
 export async function createSummarizeChat(title, projectId) {
@@ -84,3 +93,14 @@ export async function summarizeAi(chatId, topic, projectId) {
 
   return handleResponse(res);
 }
+
+
+export async function deleteSummarizeChat(chatId, projectId) {
+  const res = await fetch(
+    withProjectId(`${API.SUMMARIZE_CHATS}/${chatId}`, projectId),
+    { method: "DELETE" }
+  );
+
+  return handleResponse(res);
+}
+

@@ -153,7 +153,7 @@ async function summarizeRag(req, res) {
       sources = buildUniqueSources(relevantChunks);
     }
 
-    const summaryFile = await summaryFilesService.uploadSummaryTxt(
+    const summaryFile = await summaryFileService.uploadSummaryTxt(
       projectId,
       chatId,
       summary

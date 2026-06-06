@@ -61,9 +61,28 @@ async function getChatMessages(featureType, chatId, projectId = DEFAULT_PROJECT_
   }));
 }
 
+async function deleteChat(featureType, chatId, projectId) {
+  const chatRef = getFeatureChatsCollection(featureType, projectId).doc(chatId);
+
+  const messagesSnapshot = await chatRef.collection("messages").get();
+
+  const batch = db.batch();
+
+  messagesSnapshot.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  batch.delete(chatRef);
+
+  await batch.commit();
+
+  return { id: chatId };
+}
+
 module.exports = {
   createChat,
   addMessageToChat,
   getChats,
   getChatMessages,
+  deleteChat
 };

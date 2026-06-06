@@ -3,6 +3,7 @@ import { PlusIcon }  from "./iconsAndButtons";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { safeFormatDate } from "../helpers/dateHelper";
+import messages from "../messages.js";
 
 export function HomeContent({ projects, projectsLoading, projectsError, onCreateProject, onRefresh }) {
   return (
@@ -17,11 +18,11 @@ export function HomeContent({ projects, projectsLoading, projectsError, onCreate
             lineHeight: 1.15,
           }}
         >
-          Hello 👋
+          {messages.welcome.hello}
         </h1>
 
         <p style={{ fontSize: "1.125rem", color: "var(--text-2)", margin: 0 }}>
-          What will we study today?
+          {messages.welcome.question}
         </p>
       </div>
 
@@ -44,7 +45,7 @@ export function HomeContent({ projects, projectsLoading, projectsError, onCreate
           }}
         >
           <PlusIcon />
-          Create New Project
+          {messages.projects.create}
         </button>
       </div>
 

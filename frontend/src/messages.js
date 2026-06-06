@@ -1,6 +1,11 @@
 const messages = {
   welcome: {
     title: "Welcome to Studify",
+    hello: "Hello",
+    question: "What will we study today?"
+  },
+  projects: {
+    create: "create new project"
   },
   general: {
     loading: "Loading...",

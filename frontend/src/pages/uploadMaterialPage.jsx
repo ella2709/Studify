@@ -3,60 +3,17 @@ import { useParams, useLocation, Link } from "react-router-dom";
 
 import messages from "../messages";
 import { AttachmentIcon } from "../components/iconsAndButtons";
-import {
-  getMaterials,
-  uploadMaterials,
-  deleteMaterial,
-} from "../services/materialService";
+import { getMaterials, uploadMaterials, deleteMaterial} from "../services/materialService";
+import { formatUploadDate } from "../helpers/dateHelper";
+import {formatFileSize, getFileBadge, removeSelectedFile} from "../helpers/fileHelper";
+import ConfirmDialog from "../components/ConfirmDialog";
 
-function formatFileSize(bytes) {
-  if (!bytes && bytes !== 0) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-}
-
-function getFileBadge(fileName = "") {
-  const n = fileName.toLowerCase();
-
-  if (n.endsWith(".pdf")) return "PDF";
-  if (n.endsWith(".docx") || n.endsWith(".doc")) return "DOC";
-  if (n.endsWith(".pptx") || n.endsWith(".ppt")) return "PPT";
-  if (n.endsWith(".xlsx") || n.endsWith(".xls")) return "XLS";
-  if (n.endsWith(".txt")) return "TXT";
-  if (n.endsWith(".md")) return "MD";
-  if (n.endsWith(".csv")) return "CSV";
-
-  return "FILE";
-}
-
-function formatUploadDate(file) {
-  const rawDate = file.createdAt || file.uploadedAt || file.created_at;
-  if (!rawDate) return "";
-
-  if (typeof rawDate === "object" && !(rawDate instanceof Date)) {
-    const secs = rawDate._seconds ?? rawDate.seconds;
-    if (typeof secs === "number") return new Date(secs * 1000).toLocaleDateString();
-    return "";
-  }
-
-  const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
-  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
-}
 
 function ProjectBreadcrumb() {
   const { projectId } = useParams();
   const location = useLocation();
-
   if (!projectId) return null;
-
-  const name =
-    location.state?.projectName ||
-    projectId
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-
+  const name = location.state?.projectName || projectId.split("-").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   return (
     <div style={{ marginBottom: "0.75rem" }}>
       <Link
@@ -86,6 +43,7 @@ function UploadMaterialPage() {
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [status, setStatus] = useState({ type: "", text: "" });
+  const [materialToDelete, setMaterialToDelete] = useState(null);
 
   async function loadUploadedFiles() {
     try {
@@ -114,6 +72,16 @@ function UploadMaterialPage() {
     setSelectedFiles(filesArray);
     setStatus({ type: "", text: "" });
   }
+
+  useEffect(() => {
+    if (!status.text) return;
+
+    const timer = setTimeout(() => {
+      setStatus({ type: "", text: "" });
+    }, 3000); // 3 שניות
+
+    return () => clearTimeout(timer);
+ }, [status]);
 
   async function handleUpload() {
     setStatus({ type: "", text: "" });
@@ -165,6 +133,14 @@ function UploadMaterialPage() {
       });
     }
   }
+
+  async function confirmDeleteMaterial() {
+  if (!materialToDelete) return;
+
+  await handleDeleteFile(materialToDelete.id);
+  setMaterialToDelete(null);
+  }
+
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
@@ -374,8 +350,32 @@ function UploadMaterialPage() {
                       borderRadius: "0.625rem",
                       backgroundColor: "var(--bg-raised)",
                       padding: "0.625rem",
+                      position: "relative"
                     }}
                   >
+                       <button
+                         onClick={() =>
+                            setSelectedFiles((prevFiles) =>
+                              prevFiles.filter((_, fileIndex) => fileIndex !== index)
+                            )
+                          }
+                          title="Remove file"
+                          style={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            border: "1px solid var(--border)",
+                            backgroundColor: "var(--bg-surface)",
+                            color: "var(--text-muted)",
+                            cursor: "pointer",
+                            fontWeight: 700,
+                          }}
+                        >
+                          ×
+                      </button>
                     <p
                       style={{
                         margin: "0 0 0.25rem",
@@ -400,7 +400,10 @@ function UploadMaterialPage() {
                       {formatFileSize(file.size)}
                     </span>
                   </div>
+                  
                 ))}
+
+             
               </div>
             </div>
           )}
@@ -566,7 +569,7 @@ function UploadMaterialPage() {
 
                   <button
                     type="button"
-                    onClick={() => handleDeleteFile(file.id)}
+                    onClick={() => setMaterialToDelete(file)}
                     className="btn btn-secondary"
                     style={{
                       fontSize: "0.75rem",
@@ -582,7 +585,17 @@ function UploadMaterialPage() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+          open={!!materialToDelete}
+          title="Delete file?"
+          message={`Are you sure you want to delete "${materialToDelete?.originalName}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={confirmDeleteMaterial}
+          onCancel={() => setMaterialToDelete(null)}
+        />
     </div>
+    
   );
 }
 
