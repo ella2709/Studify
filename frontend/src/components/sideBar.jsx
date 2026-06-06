@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { HamburgerIcon, SearchIcon, HomeIcon } from "./iconsAndButtons";
 
-/* ── Sidebar ─────────────────────────────────────────────── */
 export function Sidebar({
   projects,
   projectsLoading,
@@ -12,6 +11,7 @@ export function Sidebar({
   onNavClick,
 }) {
   const location = useLocation();
+  const [projectsOpen, setProjectsOpen] = useState(true);
 
   return (
     <div
@@ -20,12 +20,12 @@ export function Sidebar({
         flexDirection: "column",
         height: "100%",
         overflow: "hidden",
+        fontFamily: "Inter, system-ui, sans-serif",
       }}
     >
-      {/* ── Logo ── */}
       <div
         style={{
-          padding: "1.25rem 1.125rem 1rem",
+          padding: "1.3rem 1rem 1.15rem",
           borderBottom: "1px solid var(--sidebar-border)",
           flexShrink: 0,
         }}
@@ -36,7 +36,7 @@ export function Sidebar({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "0.75rem",
+            gap: "0.9rem",
             textDecoration: "none",
           }}
         >
@@ -44,29 +44,35 @@ export function Sidebar({
             src="/Logo.png"
             alt="Studify"
             style={{
-              height: 34,
-              width: 34,
+              width: 58,
+              height: 58,
               objectFit: "contain",
-              borderRadius: "0.5rem",
+              borderRadius: "0.9rem",
+              background: "#fff",
+              padding: 5,
               flexShrink: 0,
             }}
           />
+
           <div>
             <div
               style={{
                 color: "var(--sidebar-text)",
-                fontWeight: 700,
-                fontSize: "1rem",
-                lineHeight: 1.2,
+                fontWeight: 750,
+                fontSize: "1.28rem",
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em",
               }}
             >
               Studify
             </div>
+
             <div
               style={{
                 color: "var(--sidebar-text-2)",
-                fontSize: "0.6875rem",
-                marginTop: 1,
+                fontSize: "0.9rem",
+                marginTop: 4,
+                fontWeight: 450,
               }}
             >
               AI Study Assistant
@@ -75,11 +81,10 @@ export function Sidebar({
         </Link>
       </div>
 
-      {/* ── Nav ── */}
       <nav
         style={{
           flex: 1,
-          padding: "0.875rem 0.875rem 0",
+          padding: "1rem 0.75rem 0",
           overflowY: "auto",
           overflowX: "hidden",
         }}
@@ -92,127 +97,154 @@ export function Sidebar({
           onClick={onNavClick}
         />
 
-        {/* Projects section */}
-        <div style={{ marginTop: "1.5rem" }}>
+        <div style={{ marginTop: "1.35rem" }}>
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "space-between",
-              padding: "0 0.625rem",
-              marginBottom: "0.5rem",
+              gap: "0.45rem",
+              padding: "0 0.45rem",
+              marginBottom: "0.55rem",
             }}
           >
-            <span
+            <button
+              onClick={() => setProjectsOpen((prev) => !prev)}
               style={{
-                fontSize: "0.6875rem",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "var(--sidebar-text-2)",
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "0.35rem 0",
+                color: "var(--sidebar-active-text)",
+                fontFamily: "inherit",
               }}
             >
-              My Projects
-            </span>
+              <span
+                style={{
+                  fontSize: "0.74rem",
+                  fontWeight: 750,
+                  letterSpacing: "0.09em",
+                  textTransform: "uppercase",
+                }}
+              >
+                My Projects
+              </span>
+
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 18,
+                  height: 18,
+                  transform: projectsOpen ? "rotate(0deg)" : "rotate(-90deg)",
+                  transition: "transform 0.18s ease",
+                  color: "var(--sidebar-active-text)",
+                }}
+              >
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </button>
 
             <button
               onClick={onCreateProject}
-              title="New project"
+              title="Create new project"
               style={{
-                width: 22,
-                height: 22,
-                borderRadius: "0.375rem",
-                border: "none",
-                backgroundColor: "rgba(255,255,255,0.09)",
-                color: "var(--sidebar-text-2)",
+                width: 31,
+                height: 31,
+                borderRadius: "0.65rem",
+                border: "1px solid rgba(255,255,255,0.1)",
+                backgroundColor: "rgba(255,255,255,0.08)",
+                color: "var(--sidebar-text)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1rem",
+                fontSize: "1.1rem",
                 lineHeight: 1,
                 padding: 0,
-                transition: "background-color 0.15s, color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  "rgba(255,255,255,0.18)";
-                e.currentTarget.style.color = "var(--sidebar-text)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor =
-                  "rgba(255,255,255,0.09)";
-                e.currentTarget.style.color = "var(--sidebar-text-2)";
               }}
             >
               +
             </button>
           </div>
 
-          {projectsLoading && (
-            <div style={{ padding: "0 0.125rem" }}>
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="skeleton"
-                  style={{ height: 30, marginBottom: 4, borderRadius: "0.5rem" }}
-                />
-              ))}
+          {projectsOpen && (
+            <div style={{ marginLeft: "2.05rem" }}>
+              {projectsLoading && (
+                <div>
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="skeleton"
+                      style={{
+                        height: 34,
+                        marginBottom: 7,
+                        borderRadius: "0.65rem",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!projectsLoading && projects.length === 0 && (
+                <button
+                  onClick={onCreateProject}
+                  style={{
+                    width: "100%",
+                    padding: "0.65rem 0.7rem",
+                    background: "rgba(255,255,255,0.035)",
+                    border: "1px dashed rgba(255,255,255,0.15)",
+                    borderRadius: "0.75rem",
+                    color: "var(--sidebar-text-2)",
+                    fontSize: "0.84rem",
+                    cursor: "pointer",
+                    textAlign: "center",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  + Create project
+                </button>
+              )}
+
+              {!projectsLoading &&
+                projects.map((project) => {
+                  const name = project.name || "Untitled";
+                  const path = `/project/${project.id}`;
+                  const isActive = location.pathname.startsWith(path);
+
+                  return (
+                    <SidebarProjectItem
+                      key={project.id}
+                      to={path}
+                      name={name}
+                      isActive={isActive}
+                      onClick={onNavClick}
+                    />
+                  );
+                })}
             </div>
           )}
-
-          {!projectsLoading && projects.length === 0 && (
-            <button
-              onClick={onCreateProject}
-              style={{
-                width: "100%",
-                padding: "0.5rem 0.625rem",
-                background: "none",
-                border: "1px dashed rgba(255,255,255,0.14)",
-                borderRadius: "0.5rem",
-                color: "var(--sidebar-text-2)",
-                fontSize: "0.8125rem",
-                cursor: "pointer",
-                textAlign: "center",
-                transition: "border-color 0.15s, color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor =
-                  "rgba(255,255,255,0.28)";
-                e.currentTarget.style.color = "var(--sidebar-text)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor =
-                  "rgba(255,255,255,0.14)";
-                e.currentTarget.style.color = "var(--sidebar-text-2)";
-              }}
-            >
-              + Create project
-            </button>
-          )}
-
-          {projects.map((project) => {
-            const name = project.name || "Untitled";
-            const path = `/project/${project.id}`;
-            const isActive = location.pathname.startsWith(path);
-
-            return (
-              <SidebarProjectItem
-                key={project.id}
-                to={path}
-                name={name}
-                isActive={isActive}
-                onClick={onNavClick}
-              />
-            );
-          })}
         </div>
       </nav>
 
-      {/* ── Dark mode toggle ── */}
       <div
         style={{
-          padding: "0.875rem 1.125rem",
+          padding: "0.95rem 1.15rem",
           borderTop: "1px solid var(--sidebar-border)",
           display: "flex",
           alignItems: "center",
@@ -222,11 +254,12 @@ export function Sidebar({
       >
         <span
           style={{
-            fontSize: "0.875rem",
+            fontSize: "0.9rem",
             color: "var(--sidebar-text-2)",
             display: "flex",
             alignItems: "center",
-            gap: "0.4rem",
+            gap: "0.5rem",
+            fontWeight: 500,
           }}
         >
           <span>{isDark ? "🌙" : "☀️"}</span>
@@ -237,28 +270,27 @@ export function Sidebar({
           onClick={onToggleDark}
           aria-label="Toggle dark mode"
           style={{
-            width: 44,
-            height: 24,
-            borderRadius: 12,
+            width: 48,
+            height: 26,
+            borderRadius: 999,
             border: "none",
             cursor: "pointer",
             backgroundColor: isDark ? "var(--accent)" : "rgba(255,255,255,0.2)",
             position: "relative",
             padding: 0,
             flexShrink: 0,
-            transition: "background-color 0.2s",
           }}
         >
           <span
             style={{
               position: "absolute",
               top: 3,
-              left: isDark ? 23 : 3,
-              width: 18,
-              height: 18,
+              left: isDark ? 25 : 3,
+              width: 20,
+              height: 20,
               borderRadius: "50%",
               backgroundColor: "#fff",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+              boxShadow: "0 1px 5px rgba(0,0,0,0.35)",
               transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
             }}
           />
@@ -268,7 +300,6 @@ export function Sidebar({
   );
 }
 
-/* ── Sidebar nav item ────────────────────────────────────── */
 export function SidebarNavItem({ to, label, icon, active, onClick }) {
   return (
     <Link
@@ -277,37 +308,23 @@ export function SidebarNavItem({ to, label, icon, active, onClick }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "0.625rem",
-        padding: "0.5625rem 0.625rem",
-        borderRadius: "0.625rem",
-        fontSize: "0.9rem",
-        fontWeight: active ? 600 : 400,
+        gap: "0.7rem",
+        padding: "0.78rem 0.8rem",
+        borderRadius: "0.85rem",
+        fontSize: "0.95rem",
+        fontWeight: active ? 700 : 550,
         color: active ? "var(--sidebar-active-text)" : "var(--sidebar-text-2)",
         backgroundColor: active ? "var(--sidebar-active)" : "transparent",
         textDecoration: "none",
-        marginBottom: 2,
-        transition: "background-color 0.15s, color 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        if (!active) {
-          e.currentTarget.style.backgroundColor = "var(--sidebar-hover)";
-          e.currentTarget.style.color = "var(--sidebar-text)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!active) {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "var(--sidebar-text-2)";
-        }
+        marginBottom: 4,
       }}
     >
       {icon}
-      {label}
+      <span>{label}</span>
     </Link>
   );
 }
 
-/* ── Sidebar project item ────────────────────────────────── */
 function SidebarProjectItem({ to, name, isActive, onClick }) {
   return (
     <Link
@@ -316,39 +333,32 @@ function SidebarProjectItem({ to, name, isActive, onClick }) {
       onClick={onClick}
       title={name}
       style={{
-        display: "block",
-        padding: "0.5rem 0.625rem",
-        borderRadius: "0.5rem",
-        fontSize: "0.875rem",
-        fontWeight: isActive ? 600 : 400,
+        display: "flex",
+        alignItems: "center",
+        padding: "0.68rem 0.25rem",
+        borderRadius: "0.7rem",
+        fontSize: "0.92rem",
+        fontWeight: isActive ? 700 : 500,
         color: isActive ? "var(--sidebar-active-text)" : "var(--sidebar-text-2)",
         backgroundColor: isActive ? "var(--sidebar-active)" : "transparent",
         textDecoration: "none",
-        marginBottom: 2,
+        marginBottom: 3,
         overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-        transition: "background-color 0.15s, color 0.15s",
-      }}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.backgroundColor = "var(--sidebar-hover)";
-          e.currentTarget.style.color = "var(--sidebar-text)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "var(--sidebar-text-2)";
-        }
       }}
     >
-      {name}
+      <span
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {name}
+      </span>
     </Link>
   );
 }
 
-/* ── Top bar ─────────────────────────────────────────────── */
 export function TopBar({ isSidebarOpen, onToggleSidebar }) {
   return (
     <header
@@ -365,7 +375,6 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
         height: "var(--topbar-h)",
       }}
     >
-      {/* Hamburger button */}
       <button
         onClick={onToggleSidebar}
         aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
@@ -380,23 +389,12 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
           alignItems: "center",
           justifyContent: "center",
           color: "var(--text-2)",
-          transition: "background-color 0.15s, color 0.15s",
-          flexShrink: 0,
           padding: 0,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "var(--bg-raised)";
-          e.currentTarget.style.color = "var(--text)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "transparent";
-          e.currentTarget.style.color = "var(--text-2)";
         }}
       >
         <HamburgerIcon open={isSidebarOpen} />
       </button>
 
-      {/* Search bar */}
       <div
         style={{
           display: "flex",
@@ -410,14 +408,6 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
           padding: "0 1rem",
           height: 38,
           boxShadow: "var(--shadow-sm)",
-          cursor: "text",
-          transition: "border-color 0.15s, box-shadow 0.15s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = "var(--border-2)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.borderColor = "var(--border)";
         }}
       >
         <SearchIcon />

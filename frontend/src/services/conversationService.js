@@ -1,4 +1,6 @@
 import { API } from "../api";
+import { useQuery,useQueries,  useMutation, useQueryClient } from "@tanstack/react-query";
+import { getChatDate} from "../helpers/dateHelper";
 
 async function handleResponse(res) {
   const data = await res.json();
@@ -104,3 +106,60 @@ export async function deleteSummarizeChat(chatId, projectId) {
   return handleResponse(res);
 }
 
+
+
+
+export const useAskChats = (projectId) =>
+  useQuery({
+    queryKey: ["askChats", projectId],
+    queryFn: () => getAskChats(projectId),
+    enabled: !!projectId,
+  });
+
+export const useSummarizeChats = (projectId) =>
+  useQuery({
+    queryKey: ["summarizeChats", projectId],
+    queryFn: () => getSummarizeChats(projectId),
+    enabled: !!projectId,
+  });
+
+
+export const useRecentChatsByProject = (projects = []) => {
+  const askQueries = useQueries({
+    queries: projects.map((project) => ({
+      queryKey: ["askChats", project.id],
+      queryFn: () => getAskChats(project.id),
+      enabled: !!project.id,
+    })),
+  });
+
+  const summarizeQueries = useQueries({
+    queries: projects.map((project) => ({
+      queryKey: ["summarizeChats", project.id],
+      queryFn: () => getSummarizeChats(project.id),
+      enabled: !!project.id,
+    })),
+  });
+
+  const recentChatsByProject = {};
+
+  projects.forEach((project, index) => {
+    const askChats =
+      askQueries[index]?.data?.chats?.map((chat) => ({
+        ...chat,
+        type: "ask",
+      })) || [];
+
+    const summarizeChats =
+      summarizeQueries[index]?.data?.chats?.map((chat) => ({
+        ...chat,
+        type: "summarize",
+      })) || [];
+
+    recentChatsByProject[project.id] = [...askChats, ...summarizeChats]
+      .sort((a, b) => getChatDate(b) - getChatDate(a))
+      .slice(0, 3);
+  });
+
+  return recentChatsByProject;
+};

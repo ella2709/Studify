@@ -35,3 +35,15 @@ export function formatUploadDate(file) {
   const date = rawDate instanceof Date ? rawDate : new Date(rawDate);
   return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString();
 }
+
+
+
+export function getChatDate(chat) {
+  return new Date(
+    chat.updatedAt ||
+    chat.lastUsedAt ||
+    chat.lastMessageAt ||
+    chat.createdAt ||
+    0
+  ).getTime();
+}

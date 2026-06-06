@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TopBar, Sidebar } from "./sideBar";
+import { useRecentChatsByProject } from "../services/conversationService";
 
 const SIDEBAR_W = 264;
 
@@ -8,6 +9,7 @@ export function MainLayout({ children, projects, projectsLoading, isDark, onTogg
     () => window.innerWidth >= 768
   );
 
+  const recentChatsByProject = useRecentChatsByProject(projects || []);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   useEffect(() => {
@@ -45,14 +47,15 @@ export function MainLayout({ children, projects, projectsLoading, isDark, onTogg
           zIndex: 20,
         }}
       >
-        <Sidebar
-          projects={projects}
-          projectsLoading={projectsLoading}
-          isDark={isDark}
-          onToggleDark={onToggleDark}
-          onCreateProject={onCreateProject}
-          onNavClick={closeSidebarOnMobile}
-        />
+       <Sidebar
+            projects={projects}
+            projectsLoading={projectsLoading}
+            recentChatsByProject={recentChatsByProject}
+            isDark={isDark}
+            onToggleDark={onToggleDark}
+            onCreateProject={onCreateProject}
+            onNavClick={closeSidebarOnMobile}
+            />
       </aside>
 
       <div

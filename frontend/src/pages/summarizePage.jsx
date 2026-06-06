@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import { summarizeAi, createSummarizeChat, getSummarizeChats, getSummarizeChatMessages, deleteSummarizeChat} from "../services/conversationService.js";
+import { summarizeAi, createSummarizeChat, useSummarizeChats, getSummarizeChatMessages, deleteSummarizeChat} from "../services/conversationService.js";
 import messages from "../messages.js";
 import ChatMessages from "../components/chatMessages.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
@@ -41,14 +41,12 @@ function ProjectBreadcrumb() {
 
 function SummarizePage() {
   const { projectId } = useParams();
-
   const [topic, setTopic] = useState("");
-  const [chatTitle, setChatTitle] = useState("");
-  const [chats, setChats] = useState([]);
+  const [chatTitle, setChatTitle] = useState(""); const { data: chatsData, isLoading: loadingChats, refetch: refetchChats} = useSummarizeChats(projectId);
+  const chats = chatsData?.chats || [];
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingChats, setLoadingChats] = useState(false);
   const [error, setError] = useState("");
   const [chatToDelete, setChatToDelete] = useState(null);
 
@@ -57,21 +55,9 @@ function SummarizePage() {
     setChatMessages([]);
     setChats([]);
     setError("");
-    loadChats();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
-  async function loadChats() {
-    try {
-      setLoadingChats(true);
-      const data = await getSummarizeChats(projectId);
-      setChats(data.chats || []);
-    } catch (err) {
-      setError(err.message || "Failed to load chats");
-    } finally {
-      setLoadingChats(false);
-    }
-  }
 
   async function handleCreateChat() {
     setError("");
@@ -84,7 +70,7 @@ function SummarizePage() {
       setSelectedChat(data.chat);
       setChatMessages([]);
       setChatTitle("");
-      await loadChats();
+      await refetchChats();
     } catch (err) {
       setError(err.message || "Failed to create chat");
     }
@@ -123,7 +109,7 @@ function SummarizePage() {
       const result = await summarizeAi(selectedChat.id, topic, projectId);
       setChatMessages((prev) => [...prev, result.message]);
       setTopic("");
-      await loadChats();
+      await refetchChats();
     } catch (err) {
       setError(err.message || messages.summarize.error);
     } finally {
@@ -143,7 +129,7 @@ function SummarizePage() {
       }
 
       setChatToDelete(null);
-      await loadChats();
+      await refetchChats();
     } catch (err) {
       setError(err.message || "Failed to delete chat");
     }
