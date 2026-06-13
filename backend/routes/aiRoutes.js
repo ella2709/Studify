@@ -1,9 +1,25 @@
 const express = require("express");
-const { askRag, summarizeRag} = require("../controllers/aiController");
-const { createAskAIChat, createSummarizeAIChat, getAskAIChats, getSummarizeAIChats, getAskAIChatMessages,
-  getSummarizeAIChatMessages, deleteAskAIChat, deleteSummarizeAIChat} = require("../controllers/conversationsController");
+const authHelper = require("../helpers/authHelper");
+
+const {
+  askRag,
+  summarizeRag,
+} = require("../controllers/aiController");
+
+const {
+  createAskAIChat,
+  createSummarizeAIChat,
+  getAskAIChats,
+  getSummarizeAIChats,
+  getAskAIChatMessages,
+  getSummarizeAIChatMessages,
+  deleteAskAIChat,
+  deleteSummarizeAIChat,
+} = require("../controllers/conversationsController");
 
 const router = express.Router();
+
+router.use(authHelper);
 
 router.post("/ask-rag", askRag);
 router.post("/summarize-rag", summarizeRag);

@@ -1,23 +1,25 @@
 const { db, admin } = require("../firebase");
 const { toMaterialDto } = require("../Dtos/materialDto");
 
-const DEFAULT_USER_ID = "defaultUser";
+function getMaterialsCollection(userId, projectId) {
+  if (!userId) {
+    throw new Error("Missing userId");
+  }
 
-function getMaterialsCollection(projectId) {
   if (!projectId) {
     throw new Error("Missing projectId");
   }
 
   return db
     .collection("users")
-    .doc(DEFAULT_USER_ID)
+    .doc(userId)
     .collection("projects")
     .doc(projectId)
     .collection("materials");
 }
 
-async function addMaterial(material, projectId) {
-  const materialRef = getMaterialsCollection(projectId).doc(material.id);
+async function addMaterial(material, projectId, userId) {
+  const materialRef = getMaterialsCollection(userId, projectId).doc(material.id);
 
   await materialRef.set({
     ...material,
@@ -28,8 +30,8 @@ async function addMaterial(material, projectId) {
   return toMaterialDto(createdDoc);
 }
 
-async function getAllMaterials(projectId) {
-  const snapshot = await getMaterialsCollection(projectId)
+async function getAllMaterials(projectId, userId) {
+  const snapshot = await getMaterialsCollection(userId, projectId)
     .orderBy("uploadedAt", "desc")
     .get();
 
@@ -39,8 +41,8 @@ async function getAllMaterials(projectId) {
   }));
 }
 
-async function getMaterialById(id, projectId) {
-  const doc = await getMaterialsCollection(projectId).doc(id).get();
+async function getMaterialById(id, projectId, userId) {
+  const doc = await getMaterialsCollection(userId, projectId).doc(id).get();
 
   if (!doc.exists) {
     return null;
@@ -52,16 +54,16 @@ async function getMaterialById(id, projectId) {
   };
 }
 
-async function getAllMaterialsMetadata(projectId) {
-  const snapshot = await getMaterialsCollection(projectId)
+async function getAllMaterialsMetadata(projectId, userId) {
+  const snapshot = await getMaterialsCollection(userId, projectId)
     .orderBy("uploadedAt", "desc")
     .get();
 
   return snapshot.docs.map((doc) => toMaterialDto(doc));
 }
 
-async function removeMaterial(id, projectId) {
-  await getMaterialsCollection(projectId).doc(id).delete();
+async function removeMaterial(id, projectId, userId) {
+  await getMaterialsCollection(userId, projectId).doc(id).delete();
 }
 
 module.exports = {

@@ -1,23 +1,21 @@
 const { db, admin } = require("../firebase");
 const { toProjectDto } = require("../Dtos/projectDto");
 
-const DEFAULT_USER_ID = "defaultUser";
-
-function getProjectsCollection() {
+function getProjectsCollection(userId) {
   return db
     .collection("users")
-    .doc(DEFAULT_USER_ID)
+    .doc(userId)
     .collection("projects");
-  
 }
 
-async function getProjects() {
-  const snapshot = await getProjectsCollection().get();
+async function getProjects(userId) {
+  const snapshot = await getProjectsCollection(userId).get();
+
   return snapshot.docs.map((doc) => toProjectDto(doc));
 }
 
-async function getProjectById(projectId) {
-  const doc = await getProjectsCollection().doc(projectId).get();
+async function getProjectById(projectId, userId) {
+  const doc = await getProjectsCollection(userId).doc(projectId).get();
 
   if (!doc.exists) {
     return null;
@@ -26,8 +24,8 @@ async function getProjectById(projectId) {
   return toProjectDto(doc);
 }
 
-async function createProject(name) {
-  const projectRef = getProjectsCollection().doc();
+async function createProject(name, userId) {
+  const projectRef = getProjectsCollection(userId).doc();
 
   await projectRef.set({
     name,

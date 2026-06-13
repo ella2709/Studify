@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../authentication/firebaseAuth";
 import { HamburgerIcon, SearchIcon, HomeIcon } from "./iconsAndButtons";
 
 export function Sidebar({
@@ -11,7 +13,18 @@ export function Sidebar({
   onNavClick,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [projectsOpen, setProjectsOpen] = useState(true);
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      onNavClick?.();
+      navigate("/login", { replace: true });
+    } catch (err) {
+      console.error("LOGOUT ERROR:", err);
+    }
+  }
 
   return (
     <div
@@ -244,57 +257,89 @@ export function Sidebar({
 
       <div
         style={{
-          padding: "0.95rem 1.15rem",
+          padding: "0.95rem 1rem",
           borderTop: "1px solid var(--sidebar-border)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          display: "grid",
+          gap: "0.75rem",
           flexShrink: 0,
         }}
       >
-        <span
+        <button
+          onClick={handleLogout}
           style={{
-            fontSize: "0.9rem",
-            color: "var(--sidebar-text-2)",
+            width: "100%",
+            padding: "0.72rem 0.85rem",
+            borderRadius: "0.85rem",
+            border: "1px solid rgba(255,255,255,0.1)",
+            backgroundColor: "rgba(255,255,255,0.06)",
+            color: "var(--sidebar-text)",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            fontSize: "0.92rem",
+            fontWeight: 650,
             display: "flex",
             alignItems: "center",
-            gap: "0.5rem",
-            fontWeight: 500,
+            justifyContent: "center",
+            gap: "0.55rem",
           }}
         >
-          <span>{isDark ? "🌙" : "☀️"}</span>
-          <span>{isDark ? "Dark" : "Light"}</span>
-        </span>
+          <span>↪</span>
+          <span>Logout</span>
+        </button>
 
-        <button
-          onClick={onToggleDark}
-          aria-label="Toggle dark mode"
+        <div
           style={{
-            width: 48,
-            height: 26,
-            borderRadius: 999,
-            border: "none",
-            cursor: "pointer",
-            backgroundColor: isDark ? "var(--accent)" : "rgba(255,255,255,0.2)",
-            position: "relative",
-            padding: 0,
-            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
           }}
         >
           <span
             style={{
-              position: "absolute",
-              top: 3,
-              left: isDark ? 25 : 3,
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              backgroundColor: "#fff",
-              boxShadow: "0 1px 5px rgba(0,0,0,0.35)",
-              transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
+              fontSize: "0.9rem",
+              color: "var(--sidebar-text-2)",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              fontWeight: 500,
             }}
-          />
-        </button>
+          >
+            <span>{isDark ? "🌙" : "☀️"}</span>
+            <span>{isDark ? "Dark" : "Light"}</span>
+          </span>
+
+          <button
+            onClick={onToggleDark}
+            aria-label="Toggle dark mode"
+            style={{
+              width: 48,
+              height: 26,
+              borderRadius: 999,
+              border: "none",
+              cursor: "pointer",
+              backgroundColor: isDark
+                ? "var(--accent)"
+                : "rgba(255,255,255,0.2)",
+              position: "relative",
+              padding: 0,
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: 3,
+                left: isDark ? 25 : 3,
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                backgroundColor: "#fff",
+                boxShadow: "0 1px 5px rgba(0,0,0,0.35)",
+                transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
+              }}
+            />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -53,7 +53,6 @@ function SummarizePage() {
   useEffect(() => {
     setSelectedChat(null);
     setChatMessages([]);
-    setChats([]);
     setError("");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);

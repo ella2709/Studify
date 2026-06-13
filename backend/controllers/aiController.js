@@ -23,10 +23,25 @@ function getProjectId(req) {
   return projectId.trim();
 }
 
+function getUserId(req) {
+  const userId = req.user?.uid;
+
+  if (!userId) {
+    return null;
+  }
+
+  return userId;
+}
+
 async function askRag(req, res) {
   try {
     const { chatId, question } = req.body;
     const projectId = getProjectId(req);
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: "Missing userId" });
+    }
 
     if (!projectId) {
       return res.status(400).json({ error: "Missing projectId" });
@@ -48,13 +63,19 @@ async function askRag(req, res) {
         type: "text",
         content: question.trim(),
       },
-      projectId
+      projectId,
+      userId
     );
 
-    const materials = await materialsRepository.getAllMaterials(projectId);
+    const materials = await materialsRepository.getAllMaterials(
+      projectId,
+      userId
+    );
 
     if (materials.length === 0) {
-      return res.status(400).json({ error: "No uploaded materials found" });
+      return res.status(400).json({
+        error: "No uploaded materials found",
+      });
     }
 
     const relevantChunks = await retrieveRelevantChunks(
@@ -67,10 +88,16 @@ async function askRag(req, res) {
     let sources;
 
     if (relevantChunks.length === 0) {
-      answer = "The answer was not found in the uploaded study materials.";
+      answer =
+        "The answer was not found in the uploaded study materials.";
+
       sources = [];
     } else {
-      answer = await generateAnswerFromContext(question.trim(), relevantChunks);
+      answer = await generateAnswerFromContext(
+        question.trim(),
+        relevantChunks
+      );
+
       sources = buildUniqueSources(relevantChunks);
     }
 
@@ -85,7 +112,8 @@ async function askRag(req, res) {
       ASK_AI,
       chatId,
       assistantMessage,
-      projectId
+      projectId,
+      userId
     );
 
     res.json({
@@ -105,6 +133,11 @@ async function summarizeRag(req, res) {
   try {
     const { chatId, topic } = req.body;
     const projectId = getProjectId(req);
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({ error: "Missing userId" });
+    }
 
     if (!projectId) {
       return res.status(400).json({ error: "Missing projectId" });
@@ -115,7 +148,9 @@ async function summarizeRag(req, res) {
     }
 
     if (!topic || !topic.trim()) {
-      return res.status(400).json({ error: "Missing summary topic" });
+      return res.status(400).json({
+        error: "Missing summary topic",
+      });
     }
 
     await conversationsRepository.addMessageToChat(
@@ -126,13 +161,19 @@ async function summarizeRag(req, res) {
         type: "text",
         content: topic.trim(),
       },
-      projectId
+      projectId,
+      userId
     );
 
-    const materials = await materialsRepository.getAllMaterials(projectId);
+    const materials = await materialsRepository.getAllMaterials(
+      projectId,
+      userId
+    );
 
     if (materials.length === 0) {
-      return res.status(400).json({ error: "No uploaded materials found" });
+      return res.status(400).json({
+        error: "No uploaded materials found",
+      });
     }
 
     const relevantChunks = await retrieveRelevantChunks(
@@ -147,9 +188,14 @@ async function summarizeRag(req, res) {
     if (relevantChunks.length === 0) {
       summary =
         "No relevant information was found in the uploaded study materials for this topic.";
+
       sources = [];
     } else {
-      summary = await generateSummaryFromContext(topic.trim(), relevantChunks);
+      summary = await generateSummaryFromContext(
+        topic.trim(),
+        relevantChunks
+      );
+
       sources = buildUniqueSources(relevantChunks);
     }
 
@@ -171,7 +217,8 @@ async function summarizeRag(req, res) {
       SUMMARIZE_AI,
       chatId,
       assistantMessage,
-      projectId
+      projectId,
+      userId
     );
 
     res.json({

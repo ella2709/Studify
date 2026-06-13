@@ -1,19 +1,28 @@
 const { db, admin } = require("../firebase");
 
-const DEFAULT_USER_ID = "defaultUser";
-const DEFAULT_PROJECT_ID = "defaultProject";
+function getFeatureChatsCollection(featureType, projectId, userId) {
+  if (!userId) {
+    throw new Error("Missing userId");
+  }
 
-function getFeatureChatsCollection(featureType, projectId = DEFAULT_PROJECT_ID) {
+  if (!projectId) {
+    throw new Error("Missing projectId");
+  }
+
   return db
     .collection("users")
-    .doc(DEFAULT_USER_ID)
+    .doc(userId)
     .collection("projects")
     .doc(projectId)
     .collection(featureType);
 }
 
-async function createChat(featureType, title, projectId = DEFAULT_PROJECT_ID) {
-  const chatRef = getFeatureChatsCollection(featureType, projectId).doc();
+async function createChat(featureType, title, projectId, userId) {
+  const chatRef = getFeatureChatsCollection(
+    featureType,
+    projectId,
+    userId
+  ).doc();
 
   await chatRef.set({
     title,
@@ -24,8 +33,12 @@ async function createChat(featureType, title, projectId = DEFAULT_PROJECT_ID) {
   return { id: chatRef.id, title };
 }
 
-async function addMessageToChat(featureType, chatId, message, projectId = DEFAULT_PROJECT_ID) {
-  const chatRef = getFeatureChatsCollection(featureType, projectId).doc(chatId);
+async function addMessageToChat(featureType, chatId, message, projectId, userId) {
+  const chatRef = getFeatureChatsCollection(
+    featureType,
+    projectId,
+    userId
+  ).doc(chatId);
 
   await chatRef.collection("messages").add({
     ...message,
@@ -37,8 +50,12 @@ async function addMessageToChat(featureType, chatId, message, projectId = DEFAUL
   });
 }
 
-async function getChats(featureType, projectId = DEFAULT_PROJECT_ID) {
-  const snapshot = await getFeatureChatsCollection(featureType, projectId)
+async function getChats(featureType, projectId, userId) {
+  const snapshot = await getFeatureChatsCollection(
+    featureType,
+    projectId,
+    userId
+  )
     .orderBy("updatedAt", "desc")
     .get();
 
@@ -48,8 +65,12 @@ async function getChats(featureType, projectId = DEFAULT_PROJECT_ID) {
   }));
 }
 
-async function getChatMessages(featureType, chatId, projectId = DEFAULT_PROJECT_ID) {
-  const snapshot = await getFeatureChatsCollection(featureType, projectId)
+async function getChatMessages(featureType, chatId, projectId, userId) {
+  const snapshot = await getFeatureChatsCollection(
+    featureType,
+    projectId,
+    userId
+  )
     .doc(chatId)
     .collection("messages")
     .orderBy("createdAt", "asc")
@@ -61,8 +82,12 @@ async function getChatMessages(featureType, chatId, projectId = DEFAULT_PROJECT_
   }));
 }
 
-async function deleteChat(featureType, chatId, projectId) {
-  const chatRef = getFeatureChatsCollection(featureType, projectId).doc(chatId);
+async function deleteChat(featureType, chatId, projectId, userId) {
+  const chatRef = getFeatureChatsCollection(
+    featureType,
+    projectId,
+    userId
+  ).doc(chatId);
 
   const messagesSnapshot = await chatRef.collection("messages").get();
 
@@ -84,5 +109,5 @@ module.exports = {
   addMessageToChat,
   getChats,
   getChatMessages,
-  deleteChat
+  deleteChat,
 };

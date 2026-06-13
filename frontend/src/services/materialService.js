@@ -1,4 +1,5 @@
 import { API } from "../api";
+import { getAuthHeaders } from "../authentication/authHeaders";
 
 async function handleResponse(res) {
   const data = await res.json();
@@ -16,7 +17,10 @@ export async function getMaterials(projectId) {
   }
 
   const res = await fetch(
-    `${API.GET_MATERIALS}?projectId=${encodeURIComponent(projectId)}`
+    `${API.GET_MATERIALS}?projectId=${encodeURIComponent(projectId)}`,
+    {
+      headers: await getAuthHeaders(),
+    }
   );
 
   const data = await handleResponse(res);
@@ -38,6 +42,7 @@ export async function uploadMaterials(projectId, files) {
 
   const res = await fetch(API.UPLOAD_MATERIALS, {
     method: "POST",
+    headers: await getAuthHeaders(true),
     body: formData,
   });
 
@@ -58,6 +63,7 @@ export async function deleteMaterial(projectId, materialId) {
     `${API.GET_MATERIALS}/${materialId}?projectId=${encodeURIComponent(projectId)}`,
     {
       method: "DELETE",
+      headers: await getAuthHeaders(),
     }
   );
 

@@ -1,6 +1,12 @@
 import { API } from "../api";
-import { useQuery,useQueries,  useMutation, useQueryClient } from "@tanstack/react-query";
-import { getChatDate} from "../helpers/dateHelper";
+import {
+  useQuery,
+  useQueries,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { getChatDate } from "../helpers/dateHelper";
+import { getAuthHeaders } from "../authentication/authHeaders";
 
 async function handleResponse(res) {
   const data = await res.json();
@@ -22,7 +28,7 @@ function withProjectId(base, projectId) {
 export async function createAskChat(title, projectId) {
   const res = await fetch(API.ASK_CHATS, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ title, projectId }),
   });
 
@@ -30,13 +36,19 @@ export async function createAskChat(title, projectId) {
 }
 
 export async function getAskChats(projectId) {
-  const res = await fetch(withProjectId(API.ASK_CHATS, projectId));
+  const res = await fetch(withProjectId(API.ASK_CHATS, projectId), {
+    headers: await getAuthHeaders(),
+  });
+
   return handleResponse(res);
 }
 
 export async function getAskChatMessages(chatId, projectId) {
   const res = await fetch(
-    withProjectId(`${API.ASK_CHATS}/${chatId}/messages`, projectId)
+    withProjectId(`${API.ASK_CHATS}/${chatId}/messages`, projectId),
+    {
+      headers: await getAuthHeaders(),
+    }
   );
 
   return handleResponse(res);
@@ -45,7 +57,7 @@ export async function getAskChatMessages(chatId, projectId) {
 export async function askAi(chatId, question, projectId) {
   const res = await fetch(API.ASK_RAG, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ chatId, question, projectId }),
   });
 
@@ -55,7 +67,10 @@ export async function askAi(chatId, question, projectId) {
 export async function deleteAskChat(chatId, projectId) {
   const res = await fetch(
     withProjectId(`${API.ASK_CHATS}/${chatId}`, projectId),
-    { method: "DELETE" }
+    {
+      method: "DELETE",
+      headers: await getAuthHeaders(),
+    }
   );
 
   return handleResponse(res);
@@ -66,7 +81,7 @@ export async function deleteAskChat(chatId, projectId) {
 export async function createSummarizeChat(title, projectId) {
   const res = await fetch(API.SUMMARIZE_CHATS, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ title, projectId }),
   });
 
@@ -74,13 +89,19 @@ export async function createSummarizeChat(title, projectId) {
 }
 
 export async function getSummarizeChats(projectId) {
-  const res = await fetch(withProjectId(API.SUMMARIZE_CHATS, projectId));
+  const res = await fetch(withProjectId(API.SUMMARIZE_CHATS, projectId), {
+    headers: await getAuthHeaders(),
+  });
+
   return handleResponse(res);
 }
 
 export async function getSummarizeChatMessages(chatId, projectId) {
   const res = await fetch(
-    withProjectId(`${API.SUMMARIZE_CHATS}/${chatId}/messages`, projectId)
+    withProjectId(`${API.SUMMARIZE_CHATS}/${chatId}/messages`, projectId),
+    {
+      headers: await getAuthHeaders(),
+    }
   );
 
   return handleResponse(res);
@@ -89,25 +110,24 @@ export async function getSummarizeChatMessages(chatId, projectId) {
 export async function summarizeAi(chatId, topic, projectId) {
   const res = await fetch(API.SUMMARIZE_RAG, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ chatId, topic, projectId }),
   });
 
   return handleResponse(res);
 }
 
-
 export async function deleteSummarizeChat(chatId, projectId) {
   const res = await fetch(
     withProjectId(`${API.SUMMARIZE_CHATS}/${chatId}`, projectId),
-    { method: "DELETE" }
+    {
+      method: "DELETE",
+      headers: await getAuthHeaders(),
+    }
   );
 
   return handleResponse(res);
 }
-
-
-
 
 export const useAskChats = (projectId) =>
   useQuery({
@@ -122,7 +142,6 @@ export const useSummarizeChats = (projectId) =>
     queryFn: () => getSummarizeChats(projectId),
     enabled: !!projectId,
   });
-
 
 export const useRecentChatsByProject = (projects = []) => {
   const askQueries = useQueries({

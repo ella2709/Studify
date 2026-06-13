@@ -1,4 +1,15 @@
 const BASE_URL = "http://localhost:3001";
+import { auth } from "./authentication/firebaseAuth";
+
+export async function authHeaders() {
+
+  const token =
+    await auth.currentUser?.getIdToken();
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
 
 export const API = {
   HEALTH: `${BASE_URL}/api/health`,

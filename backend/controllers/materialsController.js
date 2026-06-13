@@ -4,7 +4,8 @@ const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
 const { generateEmbedding } = require("../helpers/embeddingHelper");
 
 function getProjectId(req) {
-  const projectId = req.body?.projectId || req.query?.projectId || req.params?.projectId;
+  const projectId =
+    req.body?.projectId || req.query?.projectId || req.params?.projectId;
 
   if (!projectId) {
     throw new Error("Missing projectId");
@@ -13,10 +14,21 @@ function getProjectId(req) {
   return projectId;
 }
 
+function getUserId(req) {
+  const userId = req.user?.uid;
+
+  if (!userId) {
+    throw new Error("Missing userId");
+  }
+
+  return userId;
+}
+
 async function uploadMaterials(req, res) {
   try {
     const files = req.files;
     const projectId = getProjectId(req);
+    const userId = getUserId(req);
 
     if (!files || files.length === 0) {
       return res.status(400).json({ error: "No files were uploaded" });
@@ -51,7 +63,12 @@ async function uploadMaterials(req, res) {
         chunks: chunkObjects,
       };
 
-      const savedMaterial = await materialsRepository.addMaterial(material, projectId);
+      const savedMaterial = await materialsRepository.addMaterial(
+        material,
+        projectId,
+        userId
+      );
+
       savedFiles.push(savedMaterial);
     }
 
@@ -70,7 +87,12 @@ async function uploadMaterials(req, res) {
 async function getMaterials(req, res) {
   try {
     const projectId = getProjectId(req);
-    const files = await materialsRepository.getAllMaterialsMetadata(projectId);
+    const userId = getUserId(req);
+
+    const files = await materialsRepository.getAllMaterialsMetadata(
+      projectId,
+      userId
+    );
 
     res.json({ files });
   } catch (err) {
@@ -84,10 +106,12 @@ async function getMaterials(req, res) {
 async function getMaterialById(req, res) {
   try {
     const projectId = getProjectId(req);
+    const userId = getUserId(req);
 
     const material = await materialsRepository.getMaterialById(
       req.params.id,
-      projectId
+      projectId,
+      userId
     );
 
     if (!material) {
@@ -106,9 +130,10 @@ async function getMaterialById(req, res) {
 async function removeMaterial(req, res) {
   try {
     const projectId = getProjectId(req);
+    const userId = getUserId(req);
     const { id } = req.params;
 
-    await materialsRepository.removeMaterial(id, projectId);
+    await materialsRepository.removeMaterial(id, projectId, userId);
 
     res.json({ message: "File deleted successfully", id });
   } catch (err) {

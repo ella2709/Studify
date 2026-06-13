@@ -1,13 +1,7 @@
-import { useQuery, useMutation, useQueryClient  } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API } from "../api";
-
-/**
- * @typedef {Object} ProjectDto
- * @property {string} id
- * @property {string} name
- * @property {*} createdAt
- * @property {*} updatedAt
- */
+import { auth } from "../authentication/firebaseAuth";
+import { getAuthHeaders } from "../authentication/authHeaders";
 
 async function handleResponse(res) {
   const data = await res.json();
@@ -19,29 +13,27 @@ async function handleResponse(res) {
   return data;
 }
 
-/**
- * @returns {Promise<ProjectDto[]>}
- */
 export async function getProjects() {
-  const res = await fetch(API.GET_PROJECTS);
+  const res = await fetch(API.GET_PROJECTS, {
+    headers: await getAuthHeaders(),
+  });
+
   const data = await handleResponse(res);
   return data.projects;
 }
 
-export const useProjects = () => {
+export const useProjects = (user) => {
   return useQuery({
-    queryKey: ["projects"],
+    queryKey: ["projects", user?.uid],
     queryFn: getProjects,
+    enabled: !!user,
   });
 };
-
 
 export async function createProject(name) {
   const res = await fetch(API.CREATE_PROJECT, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await getAuthHeaders(),
     body: JSON.stringify({ name }),
   });
 

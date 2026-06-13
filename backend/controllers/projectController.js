@@ -2,7 +2,10 @@ const projectService = require("../services/projectService");
 
 async function getProjects(req, res) {
   try {
-    const projects = await projectService.getProjects();
+    const userId = req.user.uid;
+
+    const projects = await projectService.getProjects(userId);
+
     res.json({ projects });
   } catch (err) {
     console.error("GET PROJECTS ERROR:", err);
@@ -15,8 +18,9 @@ async function getProjects(req, res) {
 async function getProjectById(req, res) {
   try {
     const { projectId } = req.params;
+    const userId = req.user.uid;
 
-    const project = await projectService.getProjectById(projectId);
+    const project = await projectService.getProjectById(projectId, userId);
 
     if (!project) {
       return res.status(404).json({ error: "Project not found" });
@@ -34,12 +38,13 @@ async function getProjectById(req, res) {
 async function createProject(req, res) {
   try {
     const { name } = req.body;
+    const userId = req.user.uid;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: "Missing project name" });
     }
 
-    const project = await projectService.createProject(name.trim());
+    const project = await projectService.createProject(name.trim(), userId);
 
     res.status(201).json({ project });
   } catch (err) {
