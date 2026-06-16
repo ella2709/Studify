@@ -1,17 +1,19 @@
 const messages = {
-  welcome: {
-    title: "Welcome to Studify",
-    hello: "Hello",
-    question: "What will we study today?"
-  },
-  projects: {
-    create: "create new project"
-  },
   general: {
     loading: "Loading...",
     refresh: "Refresh",
     error: "Something went wrong",
     success: "Operation completed successfully",
+  },
+
+  welcome: {
+    title: "Welcome to Studify",
+    hello: "Hello",
+    question: "What will we study today?"
+  },
+
+  projects: {
+    create: "create new project"
   },
 
   upload: {
@@ -63,6 +65,32 @@ const messages = {
     submit: "Summarize",
     error: "Failed to generate summary",
   },
+
+  registerAndLogin:{
+    createAccount: "Create account",
+    newHere: "New here?",
+    signIn: "Sign In",
+    login: "Login",
+    signup: "Sign Up",
+    resetPassword: "Reset",
+    forgotPassword: "Forgot password? ",
+  },
+  
+  authErrors: {
+  emailAlreadyInUse: "This email is already registered.",
+  weakPassword: "Password must be at least 6 characters.",
+  invalidCredential: "Incorrect email or password.",
+  userNotFound: "No account exists with this email address.",
+  wrongPassword: "Incorrect password.",
+  invalidEmail: "Please enter a valid email address.",
+  missingEmail: "Please enter your email.",
+  missingPassword: "Please enter your password.",
+  networkError: "Network error. Please check your internet connection.",
+  tooManyRequests: "Too many failed attempts. Please try again later.",
+  passwordsDoNotMatch: "Passwords do not match.",
+  missingName: "Please enter your name.",
+  default: "Something went wrong. Please try again.",
+},
   };
 
 export default messages;

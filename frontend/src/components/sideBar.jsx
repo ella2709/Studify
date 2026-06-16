@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../authentication/firebaseAuth";
-import { HamburgerIcon, SearchIcon, HomeIcon } from "./iconsAndButtons";
+import { HamburgerIcon, HomeIcon } from "./iconsAndButtons";
 
 export function Sidebar({
   projects,
@@ -214,24 +214,17 @@ export function Sidebar({
                 </div>
               )}
 
-              {!projectsLoading && projects.length === 0 && (
-                <button
-                  onClick={onCreateProject}
-                  style={{
-                    width: "100%",
-                    padding: "0.65rem 0.7rem",
-                    background: "rgba(255,255,255,0.035)",
-                    border: "1px dashed rgba(255,255,255,0.15)",
-                    borderRadius: "0.75rem",
-                    color: "var(--sidebar-text-2)",
-                    fontSize: "0.84rem",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  + Create project
-                </button>
+            {!projectsLoading && projects.length === 0 && (
+              <div
+                style={{
+                  padding: "0.45rem 0.25rem",
+                  color: "var(--sidebar-text-2)",
+                  fontSize: "0.82rem",
+                  fontWeight: 500,
+                }}
+              >
+                No projects
+              </div>
               )}
 
               {!projectsLoading &&
@@ -439,33 +432,7 @@ export function TopBar({ isSidebarOpen, onToggleSidebar }) {
       >
         <HamburgerIcon open={isSidebarOpen} />
       </button>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          flex: 1,
-          maxWidth: 480,
-          backgroundColor: "var(--bg-surface)",
-          border: "1.5px solid var(--border)",
-          borderRadius: 999,
-          padding: "0 1rem",
-          height: 38,
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <SearchIcon />
-        <span
-          style={{
-            fontSize: "0.875rem",
-            color: "var(--text-muted)",
-            userSelect: "none",
-          }}
-        >
-          Search projects, files, conversations...
-        </span>
-      </div>
     </header>
   );
+
 }

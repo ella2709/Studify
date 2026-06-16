@@ -4,6 +4,8 @@ import { useRecentChatsByProject } from "../services/conversationService";
 
 const SIDEBAR_W = 264;
 
+
+
 export function MainLayout({ children, projects, projectsLoading, isDark, onToggleDark, onCreateProject }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 768
@@ -47,15 +49,15 @@ export function MainLayout({ children, projects, projectsLoading, isDark, onTogg
           zIndex: 20,
         }}
       >
-       <Sidebar
-            projects={projects}
-            projectsLoading={projectsLoading}
-            recentChatsByProject={recentChatsByProject}
-            isDark={isDark}
-            onToggleDark={onToggleDark}
-            onCreateProject={onCreateProject}
-            onNavClick={closeSidebarOnMobile}
-            />
+      <Sidebar
+        projects={projects}
+        projectsLoading={projectsLoading}
+        recentChatsByProject={recentChatsByProject}
+        isDark={isDark}
+        onToggleDark={onToggleDark}
+        onCreateProject={onCreateProject}
+        onNavClick={closeSidebarOnMobile}
+      />
       </aside>
 
       <div
@@ -67,13 +69,13 @@ export function MainLayout({ children, projects, projectsLoading, isDark, onTogg
         }}
       >
         <TopBar
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen((o) => !o)}
-        />
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen((o) => !o)}
+      />
 
-        <main style={{ flex: 1, padding: "2rem 2.5rem 3rem" }}>
-          {children}
-        </main>
+          <main style={{ flex: 1, padding: "2rem 2.5rem 3rem" }}>
+            {children}
+          </main>
       </div>
     </>
   );
