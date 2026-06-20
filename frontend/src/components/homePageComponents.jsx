@@ -28,12 +28,12 @@ export function HomeContent({
     <div
       style={{
         width: "100%",
-        height: "calc(100dvh - 72px)",
-        maxHeight: "calc(100dvh - 72px)",
+        height: "100%",
+        maxHeight: "100%",
         minHeight: 0,
         position: "relative",
         overflow: "hidden",
-        padding: "0 1.5rem 1rem",
+        padding: "0 1.25rem 0.75rem",
         boxSizing: "border-box",
         background:
           "radial-gradient(circle at 10% 0%, rgba(214, 187, 148, 0.28) 0, transparent 28%), radial-gradient(circle at 92% 12%, rgba(190, 204, 174, 0.18) 0, transparent 24%), linear-gradient(180deg, rgba(255,255,255,0.82), var(--bg-app) 72%)",
@@ -69,25 +69,25 @@ export function HomeContent({
       >
         <section
           style={{
-            height: 190,
+            height: 158,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             position: "relative",
-            padding: "1.1rem 0 0.9rem",
+            padding: "0.35rem 0 0.65rem",
           }}
         >
           <div style={{ textAlign: "center" }}>
             <h1
               style={{
-                fontSize: "clamp(2.15rem, 4vw, 3.4rem)",
+                fontSize: "clamp(1.75rem, 2.8vw, 2.55rem)",
                 fontWeight: 800,
                 color: "var(--text)",
-                margin: "0 0 0.25rem",
+                margin: "0 0 0.15rem",
                 lineHeight: 1,
                 letterSpacing: "-0.055em",
-                fontFamily: "Georgia, 'Times New Roman', serif",
+                
               }}
             >
               {messages.welcome.hello}
@@ -108,10 +108,9 @@ export function HomeContent({
 
             <p
               style={{
-                fontSize: "1.05rem",
+                fontSize: "0.95rem",
                 color: "var(--text-2)",
-                margin: "0 0 1.15rem",
-                fontFamily: "Georgia, 'Times New Roman', serif",
+                margin: "0 0 0.65rem",
               }}
             >
               {messages.welcome.question}
@@ -124,8 +123,8 @@ export function HomeContent({
                 alignItems: "center",
                 justifyContent: "center",
                 gap: "0.75rem",
-                padding: "0.78rem 1.55rem",
-                minWidth: 210,
+                padding: "0.62rem 1.35rem",
+                minWidth: 185,
                 background:
                   "linear-gradient(180deg, #d5b27a 0%, #c79a5f 100%)",
                 color: "#fff",
@@ -151,7 +150,7 @@ export function HomeContent({
             backgroundColor: "rgba(255, 255, 255, 0.82)",
             border: "1px solid rgba(222, 216, 207, 0.88)",
             borderRadius: "1.7rem",
-            padding: "1.45rem",
+            padding: "1.15rem",
             flex: 1,
             minHeight: 0,
             overflow: "hidden",
@@ -169,7 +168,7 @@ export function HomeContent({
               alignItems: "center",
               justifyContent: "space-between",
               gap: "1rem",
-              marginBottom: "0.9rem",
+              marginBottom: "0.75rem",
               flexWrap: "wrap",
             }}
           >
@@ -180,7 +179,6 @@ export function HomeContent({
                 color: "var(--text)",
                 margin: 0,
                 letterSpacing: "-0.035em",
-                fontFamily: "Georgia, 'Times New Roman', serif",
               }}
             >
               My Projects
@@ -212,12 +210,12 @@ export function HomeContent({
               alignItems: "center",
               gap: "0.8rem",
               width: "100%",
-              marginBottom: "1.35rem",
+              marginBottom: "1rem",
               backgroundColor: "rgba(255,255,255,0.76)",
               border: "1px solid rgba(220, 214, 205, 0.95)",
               borderRadius: 999,
               padding: "0 1.15rem",
-              height: 48,
+              height: 44,
               boxShadow: "inset 0 1px 2px rgba(33, 28, 20, 0.03)",
             }}
           >
@@ -234,7 +232,6 @@ export function HomeContent({
                 background: "transparent",
                 color: "var(--text)",
                 fontSize: "1rem",
-                fontFamily: "inherit",
               }}
             />
           </div>
@@ -242,7 +239,7 @@ export function HomeContent({
           {projectsLoading && (
             <div
               className="projects-grid"
-              style={{ overflowY: "auto", minHeight: 0, paddingBottom: "0.35rem" }}
+              style={{ overflowY: "auto", minHeight: 0, flex: 1, paddingBottom: "0.35rem" }}
             >
               {[1, 2, 3].map((i) => (
                 <div
@@ -272,7 +269,7 @@ export function HomeContent({
           {!projectsLoading && !projectsError && visibleProjects.length > 0 && (
             <div
               className="projects-grid"
-              style={{ overflowY: "auto", minHeight: 0, paddingBottom: "0.35rem" }}
+              style={{ overflowY: "auto", minHeight: 0, flex: 1, paddingBottom: "0.35rem" }}
             >
               {visibleProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
@@ -294,7 +291,7 @@ function DecorativeStudyShelf() {
       style={{
         position: "absolute",
         right: 24,
-        bottom: 8,
+        bottom: 0,
         width: 270,
         opacity: 0.9,
         pointerEvents: "none",
@@ -319,8 +316,9 @@ function EmptyState({ title, text }) {
   return (
     <div
       style={{
-        padding: "3rem 2rem",
+        padding: "2.4rem 2rem",
         textAlign: "center",
+        flex: 1,
         backgroundColor: "rgba(255,255,255,0.55)",
         border: "1.5px dashed rgba(213, 203, 190, 0.95)",
         borderRadius: "1.25rem",
@@ -392,7 +390,7 @@ export function ProjectCard({ project }) {
       <div
         style={{
           width: 48,
-          height: 48,
+          height: 44,
           borderRadius: "1rem",
           background:
             "linear-gradient(145deg, rgba(213,178,122,0.16), rgba(255,255,255,0.85))",
@@ -410,7 +408,7 @@ export function ProjectCard({ project }) {
       <h3
         style={{
           fontSize: "1.2rem",
-          fontWeight: 800,
+          
           color: "var(--text)",
           margin: "0 0 0.8rem",
           lineHeight: 1.35,
@@ -506,7 +504,7 @@ export function CreateProjectModal({
                 fontSize: "1.45rem",
                 fontWeight: 800,
                 letterSpacing: "-0.035em",
-                fontFamily: "Georgia, 'Times New Roman', serif",
+                
               }}
             >
               Create new project
@@ -564,7 +562,7 @@ export function CreateProjectModal({
           disabled={creating}
           style={{
             width: "100%",
-            height: 48,
+            height: 44,
             borderRadius: "0.95rem",
             border: isFocused
               ? "1.5px solid rgba(199, 154, 95, 0.85)"

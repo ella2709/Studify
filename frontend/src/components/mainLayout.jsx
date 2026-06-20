@@ -63,6 +63,7 @@ export function MainLayout({ children, projects, projectsLoading, isDark, onTogg
       <div
         style={{
           paddingLeft: isSidebarOpen && !isMobile ? SIDEBAR_W : 0,
+          height: "100vh",
           minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
@@ -73,7 +74,7 @@ export function MainLayout({ children, projects, projectsLoading, isDark, onTogg
         onToggleSidebar={() => setIsSidebarOpen((o) => !o)}
       />
 
-          <main style={{ flex: 1, padding: "2rem 2.5rem 3rem" }}>
+          <main style={{ flex: 1, minHeight: 0, padding: 0 }}>
             {children}
           </main>
       </div>

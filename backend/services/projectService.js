@@ -1,4 +1,4 @@
-const { db, admin } = require("../firebase");
+const { db, admin } = require("../config/firebase");
 const { toProjectDto } = require("../Dtos/projectDto");
 
 function getProjectsCollection(userId) {

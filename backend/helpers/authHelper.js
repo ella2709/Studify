@@ -1,4 +1,4 @@
-const { admin } = require("../firebase");
+const { admin } = require("../config/firebase");
 
 async function authHelper(req, res, next) {
   try {

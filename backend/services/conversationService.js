@@ -1,4 +1,4 @@
-const { db, admin } = require("../firebase");
+const { db, admin } = require("../config/firebase");
 
 function getFeatureChatsCollection(featureType, projectId, userId) {
   if (!userId) {

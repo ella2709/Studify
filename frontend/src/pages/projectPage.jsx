@@ -34,6 +34,13 @@ function ProjectPage() {
       description: "Generate focused topic summaries from your study materials.",
       color: "#F0FBF0",
     },
+    {
+      to: `/project/${projectId}/exam`,
+      icon: "🧪",
+      label: "Exam Simulator",
+      description: "Generate, solve and review interactive exams from your materials.",
+      color: "#FFF7ED",
+    },
   ];
 
   return (

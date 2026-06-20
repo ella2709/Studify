@@ -1,4 +1,4 @@
-const { db, admin } = require("../firebase");
+const { db, admin } = require("../config/firebase");
 const { toMaterialDto } = require("../Dtos/materialDto");
 
 function getMaterialsCollection(userId, projectId) {

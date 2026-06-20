@@ -1,9 +1,10 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
+const examsRoutes = require("./routes/examsRoutes");
 const materialsRoutes = require("./routes/materialsRoutes");
-const aiRoutes = require("./routes/aiRoutes");
+const summariesRoutes = require("./routes/summariesRoutes");
+const questionsRoutes = require("./routes/questionsRoutes");
 const projectsRoutes = require("./routes/projectsRoutes");
 
 const app = express();
@@ -16,8 +17,10 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/materials", materialsRoutes);
-app.use("/api/ai", aiRoutes);
+app.use("/api/questions", questionsRoutes);
+app.use("/api/summaries", summariesRoutes);
 app.use("/api/projects", projectsRoutes);
+app.use("/api/exams", examsRoutes);
 
 const PORT = process.env.PORT || 3001;
 

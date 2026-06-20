@@ -8,6 +8,7 @@ import SummarizePage from "./pages/summarizePage";
 import UploadMaterialPage from "./pages/uploadMaterialPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ExamPage from "./pages/examPage";
 import ProtectedRoute from "./authentication/protectedRoute";
 import { useAuth } from "./authentication/authContext";
 
@@ -125,6 +126,17 @@ function App() {
                     path="/project/:projectId/summarize"
                     element={<SummarizePage />}
                   />
+
+                  <Route 
+                    path="/project/:projectId/exam" 
+                    element={<ExamPage />} 
+                  />
+
+                  <Route 
+                    path="/project/:projectId/exam/:examId" 
+                    element={<ExamPage />} 
+                  />
+
                 </Routes>
               </MainLayout>
 

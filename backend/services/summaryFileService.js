@@ -1,4 +1,4 @@
-const { admin } = require("../firebase");
+const { admin } = require("../config/firebase");
 
 async function uploadSummaryTxt(projectId, chatId, summaryText) {
   const bucket = admin.storage().bucket();

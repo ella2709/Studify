@@ -3,11 +3,8 @@ const conversationsRepository = require("../services/conversationService");
 const summaryFileService = require("../services/summaryFileService");
 
 const { retrieveRelevantChunks } = require("../helpers/ragHelper");
-const {
-  generateAnswerFromContext,
-  generateSummaryFromContext,
-} = require("../helpers/aiHelper");
-
+const { generateSummaryFromContext} = require("../helpers/summaryHelper");
+const { generateAnswerFromContext } = require("../helpers/questionHelper");
 const { buildUniqueSources } = require("../utils/fileUtils");
 
 const ASK_AI = "askAI";
