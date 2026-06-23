@@ -1,82 +1,80 @@
-import { useEffect, useState } from "react";
-import { TopBar, Sidebar } from "./sideBar";
+import { useState } from "react";
+import { Sidebar } from "./sideBar";
 import { useRecentChatsByProject } from "../services/conversationService";
 
-const SIDEBAR_W = 264;
+const SIDEBAR_W = 268;
+const SIDEBAR_W_COLLAPSED = 76;
 
+function readCollapsed() {
+  try {
+    return localStorage.getItem("sb-collapsed") === "1";
+  } catch {
+    return false;
+  }
+}
 
+export function MainLayout({
+  children,
+  projects,
+  projectsLoading,
+  isDark,
+  onToggleDark,
+  onCreateProject,
+}) {
+  const [collapsed, setCollapsed] = useState(readCollapsed);
 
-export function MainLayout({ children, projects, projectsLoading, isDark, onToggleDark, onCreateProject }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(
-    () => window.innerWidth >= 768
-  );
+  // Warm the react-query cache for each project's chats so the chat pages
+  // open instantly. (Result intentionally unused here.)
+  useRecentChatsByProject(projects || []);
 
-  const recentChatsByProject = useRecentChatsByProject(projects || []);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
-
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
-
-  const closeSidebarOnMobile = () => {
-    if (isMobile) setIsSidebarOpen(false);
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem("sb-collapsed", next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
   };
+
+  const width = collapsed ? SIDEBAR_W_COLLAPSED : SIDEBAR_W;
 
   return (
     <>
-      {isSidebarOpen && isMobile && (
-        <div
-          onClick={() => setIsSidebarOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 19,
-            backgroundColor: "rgba(0,0,0,0.55)",
-          }}
-        />
-      )}
-
       <aside
         style={{
           position: "fixed",
           top: 0,
-          left: isSidebarOpen ? 0 : -SIDEBAR_W,
-          width: SIDEBAR_W,
+          left: 0,
+          width,
           height: "100vh",
-          backgroundColor: "var(--sidebar-bg)",
           zIndex: 20,
+          transition: "width 0.22s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
-      <Sidebar
-        projects={projects}
-        projectsLoading={projectsLoading}
-        recentChatsByProject={recentChatsByProject}
-        isDark={isDark}
-        onToggleDark={onToggleDark}
-        onCreateProject={onCreateProject}
-        onNavClick={closeSidebarOnMobile}
-      />
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={toggleCollapsed}
+          projects={projects}
+          projectsLoading={projectsLoading}
+          isDark={isDark}
+          onToggleDark={onToggleDark}
+          onCreateProject={onCreateProject}
+        />
       </aside>
 
       <div
         style={{
-          paddingLeft: isSidebarOpen && !isMobile ? SIDEBAR_W : 0,
+          paddingLeft: width,
           height: "100vh",
-          minHeight: "100vh",
           display: "flex",
           flexDirection: "column",
+          transition: "padding-left 0.22s cubic-bezier(0.4,0,0.2,1)",
         }}
       >
-        <TopBar
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen((o) => !o)}
-      />
-
-          <main style={{ flex: 1, minHeight: 0, padding: 0 }}>
-            {children}
-          </main>
+        <main className="app-main">{children}</main>
       </div>
     </>
   );

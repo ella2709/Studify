@@ -2,10 +2,17 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../authentication/firebaseAuth";
-import { HamburgerIcon, HomeIcon } from "./iconsAndButtons";
+import { HomeIcon, PlusIcon, PanelIcon } from "./iconsAndButtons";
+
+function projectInitial(name = "") {
+  const trimmed = name.trim();
+  return trimmed ? trimmed.charAt(0).toUpperCase() : "•";
+}
 
 export function Sidebar({
-  projects,
+  collapsed,
+  onToggle,
+  projects = [],
   projectsLoading,
   isDark,
   onToggleDark,
@@ -26,82 +33,82 @@ export function Sidebar({
     }
   }
 
+  /* ───────────── Collapsed (icon rail) ───────────── */
+  if (collapsed) {
+    return (
+      <div className="sb sb--collapsed">
+        <div className="sb-railtop">
+          <Link to="/" onClick={onNavClick} className="sb-rail-logo" title="Studify">
+            <img src="/Logo.png" alt="Studify" />
+          </Link>
+          <button className="sb-rail-btn" onClick={onToggle} title="Expand sidebar" aria-label="Expand sidebar">
+            <PanelIcon />
+          </button>
+        </div>
+
+        <nav className="sb-rail-nav">
+          <Link
+            to="/"
+            onClick={onNavClick}
+            className={`sb-rail-btn${location.pathname === "/" ? " active" : ""}`}
+            title="Home"
+          >
+            <HomeIcon />
+          </Link>
+
+          <button className="sb-rail-btn" onClick={onCreateProject} title="New project" aria-label="New project">
+            <PlusIcon />
+          </button>
+
+          {projects.length > 0 && <div className="sb-rail-divider" />}
+
+          {projects.map((project) => {
+            const name = project.name || "Untitled";
+            const path = `/project/${project.id}`;
+            return (
+              <Link
+                key={project.id}
+                to={path}
+                state={{ projectName: name }}
+                onClick={onNavClick}
+                className={`sb-rail-proj${location.pathname.startsWith(path) ? " active" : ""}`}
+                title={name}
+              >
+                {projectInitial(name)}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="sb-railfoot">
+          <button className="sb-rail-btn" onClick={onToggleDark} title={isDark ? "Light mode" : "Dark mode"} aria-label="Toggle theme">
+            {isDark ? "🌙" : "☀️"}
+          </button>
+          <button className="sb-rail-btn sb-rail-btn--logout" onClick={handleLogout} title="Log out" aria-label="Log out">
+            <LogoutIcon />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ───────────── Expanded ───────────── */
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        overflow: "hidden",
-        fontFamily: "Inter, system-ui, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          padding: "1.3rem 1rem 1.15rem",
-          borderBottom: "1px solid var(--sidebar-border)",
-          flexShrink: 0,
-        }}
-      >
-        <Link
-          to="/"
-          onClick={onNavClick}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "0.9rem",
-            textDecoration: "none",
-          }}
-        >
-          <img
-            src="/Logo.png"
-            alt="Studify"
-            style={{
-              width: 58,
-              height: 58,
-              objectFit: "contain",
-              borderRadius: "0.9rem",
-              background: "#fff",
-              padding: 5,
-              flexShrink: 0,
-            }}
-          />
-
-          <div>
-            <div
-              style={{
-                color: "var(--sidebar-text)",
-                fontWeight: 750,
-                fontSize: "1.28rem",
-                lineHeight: 1.1,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Studify
-            </div>
-
-            <div
-              style={{
-                color: "var(--sidebar-text-2)",
-                fontSize: "0.9rem",
-                marginTop: 4,
-                fontWeight: 450,
-              }}
-            >
-              AI Study Assistant
-            </div>
+    <div className="sb">
+      <div className="sb-top">
+        <Link to="/" onClick={onNavClick} className="sb-brand">
+          <img src="/Logo.png" alt="Studify" className="sb-brand__logo" />
+          <div style={{ minWidth: 0 }}>
+            <div className="sb-brand__name">Studify</div>
+            <div className="sb-brand__tag">AI Study Assistant</div>
           </div>
         </Link>
+        <button className="sb-collapse-btn" onClick={onToggle} title="Collapse sidebar" aria-label="Collapse sidebar">
+          <PanelIcon />
+        </button>
       </div>
 
-      <nav
-        style={{
-          flex: 1,
-          padding: "1rem 0.75rem 0",
-          overflowY: "auto",
-          overflowX: "hidden",
-        }}
-      >
+      <nav className="sb-nav">
         <SidebarNavItem
           to="/"
           label="Home"
@@ -110,229 +117,67 @@ export function Sidebar({
           onClick={onNavClick}
         />
 
-        <div style={{ marginTop: "1.35rem" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.45rem",
-              padding: "0 0.45rem",
-              marginBottom: "0.55rem",
-            }}
-          >
-            <button
-              onClick={() => setProjectsOpen((prev) => !prev)}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                gap: "0.45rem",
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: "0.35rem 0",
-                color: "var(--sidebar-active-text)",
-                fontFamily: "inherit",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "0.74rem",
-                  fontWeight: 750,
-                  letterSpacing: "0.09em",
-                  textTransform: "uppercase",
-                }}
-              >
-                My Projects
-              </span>
+        <div className="sb-section">
+          <button className="sb-section__btn" onClick={() => setProjectsOpen((prev) => !prev)}>
+            <span className="sb-section__label">My Projects</span>
+            <Chevron open={projectsOpen} />
+          </button>
 
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: 18,
-                  height: 18,
-                  transform: projectsOpen ? "rotate(0deg)" : "rotate(-90deg)",
-                  transition: "transform 0.18s ease",
-                  color: "var(--sidebar-active-text)",
-                }}
-              >
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </span>
-            </button>
-
-            <button
-              onClick={onCreateProject}
-              title="Create new project"
-              style={{
-                width: 31,
-                height: 31,
-                borderRadius: "0.65rem",
-                border: "1px solid rgba(255,255,255,0.1)",
-                backgroundColor: "rgba(255,255,255,0.08)",
-                color: "var(--sidebar-text)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1.1rem",
-                lineHeight: 1,
-                padding: 0,
-              }}
-            >
-              +
-            </button>
-          </div>
-
-          {projectsOpen && (
-            <div style={{ marginLeft: "2.05rem" }}>
-              {projectsLoading && (
-                <div>
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="skeleton"
-                      style={{
-                        height: 34,
-                        marginBottom: 7,
-                        borderRadius: "0.65rem",
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-
-            {!projectsLoading && projects.length === 0 && (
-              <div
-                style={{
-                  padding: "0.45rem 0.25rem",
-                  color: "var(--sidebar-text-2)",
-                  fontSize: "0.82rem",
-                  fontWeight: 500,
-                }}
-              >
-                No projects
-              </div>
-              )}
-
-              {!projectsLoading &&
-                projects.map((project) => {
-                  const name = project.name || "Untitled";
-                  const path = `/project/${project.id}`;
-                  const isActive = location.pathname.startsWith(path);
-
-                  return (
-                    <SidebarProjectItem
-                      key={project.id}
-                      to={path}
-                      name={name}
-                      isActive={isActive}
-                      onClick={onNavClick}
-                    />
-                  );
-                })}
-            </div>
-          )}
-        </div>
-      </nav>
-
-      <div
-        style={{
-          padding: "0.95rem 1rem",
-          borderTop: "1px solid var(--sidebar-border)",
-          display: "grid",
-          gap: "0.75rem",
-          flexShrink: 0,
-        }}
-      >
-        <button
-          onClick={handleLogout}
-          style={{
-            width: "100%",
-            padding: "0.72rem 0.85rem",
-            borderRadius: "0.85rem",
-            border: "1px solid rgba(255,255,255,0.1)",
-            backgroundColor: "rgba(255,255,255,0.06)",
-            color: "var(--sidebar-text)",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            fontSize: "0.92rem",
-            fontWeight: 650,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.55rem",
-          }}
-        >
-          <span>↪</span>
-          <span>Logout</span>
-        </button>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.9rem",
-              color: "var(--sidebar-text-2)",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              fontWeight: 500,
-            }}
-          >
-            <span>{isDark ? "🌙" : "☀️"}</span>
-            <span>{isDark ? "Dark" : "Light"}</span>
-          </span>
-
-          <button
-            onClick={onToggleDark}
-            aria-label="Toggle dark mode"
-            style={{
-              width: 48,
-              height: 26,
-              borderRadius: 999,
-              border: "none",
-              cursor: "pointer",
-              backgroundColor: isDark
-                ? "var(--accent)"
-                : "rgba(255,255,255,0.2)",
-              position: "relative",
-              padding: 0,
-              flexShrink: 0,
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: 3,
-                left: isDark ? 25 : 3,
-                width: 20,
-                height: 20,
-                borderRadius: "50%",
-                backgroundColor: "#fff",
-                boxShadow: "0 1px 5px rgba(0,0,0,0.35)",
-                transition: "left 0.2s cubic-bezier(0.4,0,0.2,1)",
-              }}
-            />
+          <button className="sb-add" onClick={onCreateProject} title="Create new project" aria-label="Create new project">
+            +
           </button>
         </div>
+
+        {projectsOpen && (
+          <div>
+            {projectsLoading &&
+              [1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="skeleton"
+                  style={{ height: 36, margin: "0 0.6rem 6px", borderRadius: "var(--r-sm)" }}
+                />
+              ))}
+
+            {!projectsLoading && projects.length === 0 && (
+              <div style={{ padding: "0.5rem 0.6rem", color: "var(--sidebar-text-2)", fontSize: "0.83rem" }}>
+                No projects yet
+              </div>
+            )}
+
+            {!projectsLoading &&
+              projects.map((project) => {
+                const name = project.name || "Untitled";
+                const path = `/project/${project.id}`;
+                return (
+                  <SidebarProjectItem
+                    key={project.id}
+                    to={path}
+                    name={name}
+                    isActive={location.pathname.startsWith(path)}
+                    onClick={onNavClick}
+                  />
+                );
+              })}
+          </div>
+        )}
+      </nav>
+
+      <div className="sb-footer">
+        <div className="theme-toggle">
+          <span className="theme-toggle__label">
+            <span>{isDark ? "🌙" : "☀️"}</span>
+            <span>{isDark ? "Dark mode" : "Light mode"}</span>
+          </span>
+          <button onClick={onToggleDark} aria-label="Toggle dark mode" className={`switch${isDark ? " on" : ""}`}>
+            <span className="switch__knob" />
+          </button>
+        </div>
+
+        <button onClick={handleLogout} className="sb-logout">
+          <LogoutIcon />
+          <span>Log out</span>
+        </button>
       </div>
     </div>
   );
@@ -340,23 +185,7 @@ export function Sidebar({
 
 export function SidebarNavItem({ to, label, icon, active, onClick }) {
   return (
-    <Link
-      to={to}
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.7rem",
-        padding: "0.78rem 0.8rem",
-        borderRadius: "0.85rem",
-        fontSize: "0.95rem",
-        fontWeight: active ? 700 : 550,
-        color: active ? "var(--sidebar-active-text)" : "var(--sidebar-text-2)",
-        backgroundColor: active ? "var(--sidebar-active)" : "transparent",
-        textDecoration: "none",
-        marginBottom: 4,
-      }}
-    >
+    <Link to={to} onClick={onClick} className={`sb-link${active ? " active" : ""}`}>
       {icon}
       <span>{label}</span>
     </Link>
@@ -370,69 +199,32 @@ function SidebarProjectItem({ to, name, isActive, onClick }) {
       state={{ projectName: name }}
       onClick={onClick}
       title={name}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        padding: "0.68rem 0.25rem",
-        borderRadius: "0.7rem",
-        fontSize: "0.92rem",
-        fontWeight: isActive ? 700 : 500,
-        color: isActive ? "var(--sidebar-active-text)" : "var(--sidebar-text-2)",
-        backgroundColor: isActive ? "var(--sidebar-active)" : "transparent",
-        textDecoration: "none",
-        marginBottom: 3,
-        overflow: "hidden",
-      }}
+      className={`sb-project${isActive ? " active" : ""}`}
     >
-      <span
-        style={{
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {name}
-      </span>
+      <span className="sb-project__dot" />
+      <span className="sb-project__name">{name}</span>
     </Link>
   );
 }
 
-export function TopBar({ isSidebarOpen, onToggleSidebar }) {
+function Chevron({ open }) {
   return (
-    <header
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.75rem",
-        padding: "0 1.375rem",
-        borderBottom: "1px solid var(--border)",
-        backgroundColor: "var(--bg-app)",
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-        height: "var(--topbar-h)",
-      }}
-    >
-      <button
-        onClick={onToggleSidebar}
-        aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: "0.5rem",
-          border: "none",
-          backgroundColor: "transparent",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--text-2)",
-          padding: 0,
-        }}
-      >
-        <HamburgerIcon open={isSidebarOpen} />
-      </button>
-    </header>
+    <span style={{ display: "inline-flex", transform: open ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.18s ease" }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </span>
   );
+}
 
+function LogoutIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
 }

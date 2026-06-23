@@ -1,48 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import { summarizeAi, createSummarizeChat, useSummarizeChats, getSummarizeChatMessages, deleteSummarizeChat} from "../services/conversationService.js";
+import { summarizeAi, createSummarizeChat, useSummarizeChats, getSummarizeChatMessages, deleteSummarizeChat } from "../services/conversationService.js";
 import messages from "../messages.js";
 import ChatMessages from "../components/chatMessages.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
 
-
-function ProjectBreadcrumb() {
-  const { projectId } = useParams();
-  const location = useLocation();
-  if (!projectId) return null;
-  const name = location.state?.projectName ||  projectId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-  
-  return (
-    <Link
-      to={`/project/${projectId}`}
-      state={{ projectName: name }}
-      style={{
-        fontSize: "0.8125rem",
-        color: "var(--text-muted)",
-        textDecoration: "none",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.3125rem",
-        transition: "color 0.14s",
-        marginBottom: "0.75rem",
-        flexShrink: 0,
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
-      onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-    >
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-      {name}
-    </Link>
-  );
+function projectNameFromId(projectId) {
+  return projectId
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 function SummarizePage() {
   const { projectId } = useParams();
+  const location = useLocation();
+  const projectName = location.state?.projectName || projectNameFromId(projectId);
+
   const [topic, setTopic] = useState("");
-  const [chatTitle, setChatTitle] = useState(""); const { data: chatsData, isLoading: loadingChats, refetch: refetchChats} = useSummarizeChats(projectId);
+  const [chatTitle, setChatTitle] = useState("");
+  const { data: chatsData, isLoading: loadingChats, refetch: refetchChats } = useSummarizeChats(projectId);
   const chats = chatsData?.chats || [];
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
@@ -50,13 +27,19 @@ function SummarizePage() {
   const [error, setError] = useState("");
   const [chatToDelete, setChatToDelete] = useState(null);
 
+  const threadRef = useRef(null);
+
   useEffect(() => {
     setSelectedChat(null);
     setChatMessages([]);
     setError("");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  useEffect(() => {
+    if (threadRef.current) {
+      threadRef.current.scrollTop = threadRef.current.scrollHeight;
+    }
+  }, [chatMessages, loading]);
 
   async function handleCreateChat() {
     setError("");
@@ -118,15 +101,12 @@ function SummarizePage() {
 
   async function handleDeleteChat() {
     if (!chatToDelete) return;
-
     try {
       await deleteSummarizeChat(chatToDelete.id, projectId);
-
       if (selectedChat?.id === chatToDelete.id) {
         setSelectedChat(null);
         setChatMessages([]);
       }
-
       setChatToDelete(null);
       await refetchChats();
     } catch (err) {
@@ -135,33 +115,74 @@ function SummarizePage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - var(--topbar-h) - 5rem)", minHeight: 480 }}>
-      <ProjectBreadcrumb />
+    <div className="app-page app-page--full fade-in">
+      <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.85rem" }}>
+        <ChevronLeft /> {projectName}
+      </Link>
 
-      <div className="chat-layout" style={{ flex: 1, minHeight: 0 }}>
-        {/* ── Chat sidebar ── */}
-        <aside
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "1rem",
-            padding: "1.25rem",
-            boxShadow: "var(--shadow-card)",
-            minHeight: 0,
-          }}
-        >
-          <div style={{ marginBottom: "1rem", flexShrink: 0 }}>
-            <h3 style={{ fontSize: "1.0625rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.25rem" }}>
-              Summary Chats
-            </h3>
-            <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0 }}>
-              Generate and review topic summaries.
+      <div className="chat-shell">
+        {/* Summary area */}
+        <main className="chat-main">
+          <div style={{ padding: "1.1rem 1.4rem", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+            <h2 style={{ fontSize: "1.1rem", fontWeight: 750, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {selectedChat ? selectedChat.title : "Summaries"}
+            </h2>
+            <p style={{ fontSize: "0.83rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
+              Generate focused summaries from your uploaded materials.
             </p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.875rem", flexShrink: 0 }}>
+          {!selectedChat ? (
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+              <div className="empty-state" style={{ border: "none", background: "transparent", maxWidth: 380 }}>
+                <div className="empty-icon">📝</div>
+                <h3 className="empty-title">Create a summary chat</h3>
+                <p className="empty-text">Use the panel on the right to start a new summary chat, or pick an existing one.</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="chat-thread" ref={threadRef}>
+                <div className="chat-thread__inner">
+                  <ChatMessages messages={chatMessages} />
+                  {loading && (
+                    <div className="bubble-row ai" style={{ marginTop: "0.9rem" }}>
+                      <div className="bubble bubble-ai">
+                        <span className="typing"><span /><span /><span /></span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {error && <div className="status-error" style={{ margin: "0 1.1rem 0.75rem" }}>{error}</div>}
+
+              <div className="chat-input-bar">
+                <input
+                  type="text"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && !loading && handleSummarizeAi()}
+                  placeholder={messages.summarize.topicPlaceholder}
+                  className="input-base"
+                  style={{ flex: 1 }}
+                />
+                <button onClick={handleSummarizeAi} disabled={loading} className="btn btn-primary" style={{ flexShrink: 0 }}>
+                  {loading ? messages.summarize.loading : messages.summarize.submit}
+                </button>
+              </div>
+            </>
+          )}
+        </main>
+
+        {/* Chats panel */}
+        <aside className="chat-aside">
+          <div style={{ flexShrink: 0, marginBottom: "0.9rem" }}>
+            <h3 style={{ fontSize: "0.95rem", fontWeight: 750, margin: "0 0 0.2rem" }}>Summary Chats</h3>
+            <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: 0 }}>Generate and review topic summaries.</p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.9rem", flexShrink: 0 }}>
             <input
               type="text"
               value={chatTitle}
@@ -169,147 +190,37 @@ function SummarizePage() {
               onKeyDown={(e) => e.key === "Enter" && handleCreateChat()}
               placeholder="Chat title..."
               className="input-base"
-              style={{ fontSize: "0.875rem" }}
             />
-            <button onClick={handleCreateChat} className="btn btn-primary" style={{ width: "100%" }}>
+            <button onClick={handleCreateChat} className="btn btn-primary btn-block">
               + New Summary Chat
             </button>
           </div>
 
-          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.3125rem" }}>
-            {loadingChats && (
-              <>
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="skeleton" style={{ height: 36, borderRadius: "0.625rem" }} />
-                ))}
-              </>
-            )}
+          {error && !selectedChat && <div className="status-error" style={{ marginBottom: "0.75rem", fontSize: "0.8rem" }}>{error}</div>}
+
+          <div className="chat-list">
+            {loadingChats && [1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: 40 }} />)}
+
             {!loadingChats && chats.length === 0 && (
-              <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", padding: "0.75rem", textAlign: "center", backgroundColor: "var(--bg-raised)", borderRadius: "0.625rem" }}>
+              <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", padding: "1rem", textAlign: "center", background: "var(--bg-raised)", borderRadius: "var(--r-sm)" }}>
                 No chats yet
               </div>
             )}
+
             {chats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`chat-item${selectedChat?.id === chat.id ? " active" : ""}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "0.5rem",
-                }}
-              >
-                <button
-                  onClick={() => handleSelectChat(chat)}
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    background: "transparent",
-                    color: "inherit",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    font: "inherit",
-                  }}
-                >
+              <div key={chat.id} className={`chat-item${selectedChat?.id === chat.id ? " active" : ""}`}>
+                <button className="chat-item__label" onClick={() => handleSelectChat(chat)} title={chat.title}>
                   {chat.title}
                 </button>
-
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setChatToDelete(chat);
-                  }}
-                  title="Delete chat"
-                  style={{
-                    border: "none",
-                    background: "transparent",
-                    color: "var(--text-muted)",
-                    cursor: "pointer",
-                    fontSize: "1rem",
-                  }}
-                >
+                <button className="chat-item__del" title="Delete chat" onClick={(e) => { e.stopPropagation(); setChatToDelete(chat); }}>
                   ×
                 </button>
               </div>
             ))}
           </div>
         </aside>
-
-        {/* ── Chat area ── */}
-        <main
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            backgroundColor: "var(--bg-surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "1rem",
-            boxShadow: "var(--shadow-card)",
-            minHeight: 0,
-            overflow: "hidden",
-          }}
-        >
-          {!selectedChat ? (
-            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center" }}>
-              <div>
-                <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📝</div>
-                <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.5rem" }}>
-                  Choose or create a summary chat
-                </h2>
-                <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", margin: 0 }}>
-                  Your generated summaries will appear here.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-                <h2 style={{ fontSize: "1.125rem", fontWeight: 700, color: "var(--text)", margin: "0 0 0.2rem" }}>
-                  {selectedChat.title}
-                </h2>
-                <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0 }}>
-                  Generate focused summaries from your uploaded materials.
-                </p>
-              </div>
-
-              <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1.5rem" }}>
-                <div style={{ maxWidth: 860, margin: "0 auto" }}>
-                  <ChatMessages messages={chatMessages} />
-                  {loading && (
-                    <div style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: "1rem" }}>
-                      Generating summary...
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {error && (
-                <div className="status-error" style={{ margin: "0 1.25rem 0.75rem" }}>
-                  {error}
-                </div>
-              )}
-
-              <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid var(--border)", backgroundColor: "var(--bg-surface)", flexShrink: 0 }}>
-                <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <input
-                    type="text"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && !loading && handleSummarizeAi()}
-                    placeholder={messages.summarize.topicPlaceholder}
-                    className="input-base"
-                    style={{ flex: 1 }}
-                  />
-                  <button onClick={handleSummarizeAi} disabled={loading} className="btn btn-primary" style={{ flexShrink: 0 }}>
-                    {loading ? messages.summarize.loading : messages.summarize.submit}
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </main>
       </div>
+
       <ConfirmDialog
         open={!!chatToDelete}
         title="Delete chat?"
@@ -320,6 +231,15 @@ function SummarizePage() {
         onCancel={() => setChatToDelete(null)}
       />
     </div>
+  );
+}
+
+function ChevronLeft() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
   );
 }
 

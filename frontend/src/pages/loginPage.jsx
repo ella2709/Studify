@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../authentication/firebaseAuth";
 import { useNavigate, Link } from "react-router-dom";
-import { sendPasswordResetEmail } from "firebase/auth";
 import messages from "../messages.js";
 import { getAuthErrorMessage } from "../authentication/authErrors.js";
+import AuthShell from "../components/authShell.jsx";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -12,17 +12,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
     try {
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
+      await signInWithEmailAndPassword(auth, email, password);
       navigate("/");
     } catch (err) {
       setError(getAuthErrorMessage(err.code));
@@ -30,97 +28,53 @@ export default function LoginPage() {
   };
 
   const handleResetPassword = async () => {
-  if (!email) {
-    setError(getAuthErrorMessage("auth/invalid-email"));
-    return;
-  }
-
-  try {
-    await sendPasswordResetEmail(auth, email);
-    setError("");
-    setSuccess("Password reset email sent");
-  } catch (err) {
-    setSuccess("");
-    setError(getAuthErrorMessage("auth/fail-to-send-reset-email"));
-  }
-};
+    if (!email) {
+      setError(getAuthErrorMessage("auth/invalid-email"));
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError("");
+      setSuccess("Password reset email sent. Check your inbox.");
+    } catch {
+      setSuccess("");
+      setError(getAuthErrorMessage("auth/fail-to-send-reset-email"));
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-app)]">
-      <div className="w-full max-w-md bg-[var(--bg-surface)] p-8 rounded-3xl shadow-lg border border-[var(--border)]">
-       <div className="flex justify-center mb-4">
-          <img
-            src="/Logo.png"
-            alt="Studify"
-            className="w-30 h-30"
-          />
+    <AuthShell title={messages.registerAndLogin.login} subtitle="Welcome back — sign in to continue.">
+      <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+        <div className="field">
+          <label className="field-label">Email</label>
+          <input className="input-base" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
-        <h1 className="text-2xl font-bold text-center mb-2">
-          {messages.registerAndLogin.login}
-        </h1>
 
-        
-
-        <form onSubmit={handleLogin} className="space-y-4">
-
-          <input
-            className="input-base"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e)=>setEmail(e.target.value)}
-          />
-
-          <input
-            className="input-base"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-          />
-
-           {error && (
-            <p className="text-center text-red-500 text-sm mt-1">
-              {error}
-            </p>
-          )}
-
-          <div className="text-sm">
-            <span className="text-[var(--text-muted)]">
+        <div className="field">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <label className="field-label">Password</label>
+            <button type="button" onClick={handleResetPassword} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.8rem", color: "var(--accent-dark)", fontWeight: 600, padding: 0 }}>
               {messages.registerAndLogin.forgotPassword}
-            </span>
+              {messages.registerAndLogin.resetPassword}
+            </button>
+          </div>
+          <input className="input-base" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
 
-          <button
-                type="button"
-                onClick={handleResetPassword}
-                className="cursor-pointer text-sm underline text-[var(--accent)] hover:underline self-end"
-              >
-                {messages.registerAndLogin.resetPassword}
-          </button>
-      </div>
+        {error && <div className="status-error">{error}</div>}
+        {success && <div className="status-success">{success}</div>}
 
-        
-          <button
-            type="submit"
-            className="btn btn-accent w-full"
-          >
-            {messages.registerAndLogin.signIn}
-          </button>
-        </form>
+        <button type="submit" className="btn btn-primary btn-lg btn-block" style={{ marginTop: "0.35rem" }}>
+          {messages.registerAndLogin.signIn}
+        </button>
+      </form>
 
-       <div className="mt-6 text-center text-sm">
-        <span className="text-[var(--text-muted)]">
-          {messages.registerAndLogin.newHere}{" "}
-        </span>
-
-        <Link
-          to="/register"
-          className="text-[var(--accent)] underline hover:opacity-80"
-        >
-         {messages.registerAndLogin.createAccount}
+      <p style={{ marginTop: "1.4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
+        {messages.registerAndLogin.newHere}{" "}
+        <Link to="/register" style={{ color: "var(--accent-dark)", fontWeight: 600, textDecoration: "none" }}>
+          {messages.registerAndLogin.createAccount}
         </Link>
-      </div>
-      </div>
-    </div>
+      </p>
+    </AuthShell>
   );
 }

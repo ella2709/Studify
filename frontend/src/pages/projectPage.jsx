@@ -1,16 +1,17 @@
-import { useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
+
+function titleFromId(projectId) {
+  return projectId
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
 
 function ProjectPage() {
   const { projectId } = useParams();
   const location = useLocation();
 
-  const projectName =
-    location.state?.projectName ||
-    projectId
-      .split("-")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ");
+  const projectName = location.state?.projectName || titleFromId(projectId);
 
   const tools = [
     {
@@ -18,165 +19,97 @@ function ProjectPage() {
       icon: "📎",
       label: "Upload Materials",
       description: "Upload study files — txt, md, csv, json, pdf and more.",
-      color: "#F5EDE2",
     },
     {
       to: `/project/${projectId}/questions`,
       icon: "💬",
       label: "Ask AI",
       description: "Ask questions about your uploaded materials and get AI-powered answers.",
-      color: "#EDF2FB",
     },
     {
       to: `/project/${projectId}/summarize`,
       icon: "📝",
       label: "Summaries",
       description: "Generate focused topic summaries from your study materials.",
-      color: "#F0FBF0",
     },
     {
       to: `/project/${projectId}/exam`,
       icon: "🧪",
       label: "Exam Simulator",
       description: "Generate, solve and review interactive exams from your materials.",
-      color: "#FFF7ED",
     },
   ];
 
   return (
-    <div style={{ maxWidth: 860, margin: "0 auto" }}>
-      {/* Breadcrumb */}
-      <div style={{ marginBottom: "1.75rem" }}>
-        <Link
-          to="/"
-          style={{
-            fontSize: "0.875rem",
-            color: "var(--text-muted)",
-            textDecoration: "none",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.375rem",
-            transition: "color 0.14s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          All projects
+    <div className="app-page fade-in" style={{ maxWidth: 920 }}>
+      <div className="page-head">
+        <Link to="/" className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
+          <ChevronLeft /> All projects
         </Link>
+        <p className="page-eyebrow">Project</p>
+        <h1 className="page-title">{projectName}</h1>
+        <p className="page-subtitle">Choose a tool to work with your study materials.</p>
       </div>
 
-      {/* Title */}
-      <h1
-        style={{
-          fontSize: "1.875rem",
-          fontWeight: 800,
-          color: "var(--text)",
-          margin: "0 0 0.5rem",
-          lineHeight: 1.2,
-        }}
-      >
-        {projectName}
-      </h1>
-      <p
-        style={{
-          fontSize: "0.9375rem",
-          color: "var(--text-2)",
-          margin: "0 0 2.25rem",
-        }}
-      >
-        Choose a tool to work with your study materials.
-      </p>
-
-      {/* Tool cards */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-          gap: "1.125rem",
+          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gap: "1.1rem",
         }}
       >
         {tools.map((tool) => (
-          <ToolCard
-            key={tool.to}
-            to={tool.to}
-            icon={tool.icon}
-            label={tool.label}
-            description={tool.description}
-            state={{ projectName }}
-          />
+          <ToolCard key={tool.to} {...tool} projectName={projectName} />
         ))}
       </div>
     </div>
   );
 }
 
-function ToolCard({ to, icon, label, description, state }) {
-  const [hovered, setHovered] = useState(false);
-
+function ToolCard({ to, icon, label, description, projectName }) {
   return (
-    <Link
-      to={to}
-      state={state}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "0.875rem",
-        backgroundColor: "var(--bg-surface)",
-        border: `1.5px solid ${hovered ? "var(--accent)" : "var(--border)"}`,
-        borderRadius: "1rem",
-        padding: "1.5rem",
-        textDecoration: "none",
-        color: "var(--text)",
-        boxShadow: hovered ? "var(--shadow-md)" : "var(--shadow-card)",
-        transform: hovered ? "translateY(-3px)" : "none",
-        transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <Link to={to} state={{ projectName }} className="card card-interactive" style={{ padding: "1.4rem", display: "flex", flexDirection: "column", gap: "0.9rem", textDecoration: "none", color: "var(--text)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: "1.75rem", lineHeight: 1 }}>{icon}</span>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--accent)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.18s" }}
+        <div
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "var(--r-md)",
+            background: "var(--accent-bg)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "1.5rem",
+          }}
         >
-          <line x1="5" y1="12" x2="19" y2="12" />
-          <polyline points="12 5 19 12 12 19" />
-        </svg>
+          {icon}
+        </div>
+        <ArrowIcon />
       </div>
       <div>
-        <div
-          style={{
-            fontSize: "1.0625rem",
-            fontWeight: 700,
-            color: "var(--text)",
-            marginBottom: "0.3125rem",
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: "0.8125rem",
-            color: "var(--text-2)",
-            lineHeight: 1.55,
-          }}
-        >
-          {description}
-        </div>
+        <div style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "0.35rem" }}>{label}</div>
+        <div style={{ fontSize: "0.85rem", color: "var(--text-2)", lineHeight: 1.55 }}>{description}</div>
       </div>
     </Link>
+  );
+}
+
+function ChevronLeft() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
   );
 }
 

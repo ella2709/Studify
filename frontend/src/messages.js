@@ -52,7 +52,6 @@ const messages = {
     description: "Generate a summary based on a specific topic from your uploaded materials",
     
     topicLabel: "Topic",
-    topicPlaceholder: "Write what you want to summarize...",
     missingTopic: "Please enter a topic for the summary",
 
     loading: "Generating summary...",

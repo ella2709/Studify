@@ -4,28 +4,14 @@ function SourcesList({ sources = [] }) {
   if (!sources.length) return null;
 
   return (
-    <div
-      style={{
-        marginTop: "0.875rem",
-        paddingTop: "0.75rem",
-        borderTop: "1px solid var(--border)",
-      }}
-    >
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
+    <div style={{ marginTop: "0.75rem", paddingTop: "0.65rem", borderTop: "1px solid var(--border)" }}>
+      <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
+        Sources
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
         {sources.map((source, i) => (
-          <span
-            key={`${source.fileName}-${i}`}
-            style={{
-              display: "inline-block",
-              padding: "0.1875rem 0.625rem",
-              borderRadius: 999,
-              border: "1px solid var(--border)",
-              backgroundColor: "var(--bg-raised)",
-              fontSize: "0.75rem",
-              color: "var(--text-2)",
-            }}
-          >
-            {source.fileName}
+          <span key={`${source.fileName}-${i}`} className="meta-pill">
+            📄 {source.fileName}
           </span>
         ))}
       </div>
@@ -42,49 +28,20 @@ function SummaryFileMessage({ message }) {
 
   return (
     <>
-      <div
-        style={{
-          border: "1px solid var(--border)",
-          borderRadius: "0.875rem",
-          padding: "0.875rem",
-          backgroundColor: "var(--bg-raised)",
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: "0.375rem" }}>
-          Summary TXT File
+      <div style={{ border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "0.9rem", background: "var(--bg-surface)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.65rem" }}>
+          <div className="file-badge">TXT</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>Summary file</div>
+            <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {file.fileName || "summary.txt"}
+            </div>
+          </div>
         </div>
-
-        <div
-          style={{
-            fontSize: "0.8125rem",
-            color: "var(--text-muted)",
-            marginBottom: "0.75rem",
-          }}
-        >
-          {file.fileName || "summary.txt"}
-        </div>
-
-        <a
-          href={file.downloadUrl}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0.55rem 0.9rem",
-            borderRadius: "0.75rem",
-            backgroundColor: "var(--accent)",
-            color: "white",
-            fontWeight: 700,
-            fontSize: "0.85rem",
-            textDecoration: "none",
-          }}
-        >
-          Open / Download Summary
+        <a href={file.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">
+          Open / Download
         </a>
       </div>
-
       <SourcesList sources={message.sources} />
     </>
   );
@@ -105,43 +62,15 @@ function AssistantMessage({ message }) {
 
 function ChatMessages({ messages = [] }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
       {messages.map((message, index) => {
         const isUser = message.role === "user";
 
         return (
-          <div
-            key={message.id || index}
-            style={{
-              display: "flex",
-              justifyContent: isUser ? "flex-end" : "flex-start",
-            }}
-          >
-            <div
-              style={{
-                maxWidth: "75%",
-                borderRadius: "1rem",
-                padding: "0.875rem 1.125rem",
-                fontSize: "0.9375rem",
-                boxShadow: "var(--shadow-sm)",
-                ...(isUser
-                  ? {
-                      backgroundColor: "var(--accent-bg)",
-                      color: "var(--text)",
-                      borderBottomRightRadius: "0.25rem",
-                    }
-                  : {
-                      backgroundColor: "var(--bg-surface)",
-                      border: "1px solid var(--border)",
-                      color: "var(--text)",
-                      borderBottomLeftRadius: "0.25rem",
-                    }),
-              }}
-            >
+          <div key={message.id || index} className={`bubble-row ${isUser ? "user" : "ai"} fade-in`}>
+            <div className={`bubble ${isUser ? "bubble-user" : "bubble-ai"}`}>
               {isUser ? (
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
-                  {message.content}
-                </div>
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{message.content}</div>
               ) : (
                 <AssistantMessage message={message} />
               )}

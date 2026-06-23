@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import messages from "../messages.js";
 import { auth } from "../authentication/firebaseAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { getAuthErrorMessage } from "../authentication/authErrors.js";
+import AuthShell from "../components/authShell.jsx";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -27,22 +28,14 @@ export default function RegisterPage() {
       setError(messages.authErrors.missingName);
       return;
     }
-
     if (password !== confirmPassword) {
       setError(messages.authErrors.passwordsDoNotMatch);
       return;
     }
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      await updateProfile(userCredential.user, {
-        displayName: name,
-      });
-
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: name });
       navigate("/");
     } catch (err) {
       setError(getAuthErrorMessage(err.code));
@@ -50,90 +43,74 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-app)] px-4 py-6">
-      <div className="w-full max-w-md bg-[var(--bg-surface)] px-8 py-6 rounded-3xl shadow-lg border border-[var(--border)]">
-        <div className="flex justify-center mb-5">
-          <img
-            src="/Logo.png"
-            alt="Studify"
-            className="w-28 h-28 object-contain"
-          />
+    <AuthShell title={messages.registerAndLogin.signup} subtitle="Create your account to start studying smarter.">
+      <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+        <div className="field">
+          <label className="field-label">Name</label>
+          <input className="input-base" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
 
-         <h1 className="text-2xl font-bold text-center mb-6">
-          {messages.registerAndLogin.signup}
-        </h1>
+        <div className="field">
+          <label className="field-label">Email</label>
+          <input className="input-base" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
 
-        <form onSubmit={handleRegister} className="space-y-3">
-          <input
-            className="input-base"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+        <div className="field">
+          <label className="field-label">Password</label>
+          <PasswordInput value={password} onChange={setPassword} show={showPassword} onToggle={() => setShowPassword((p) => !p)} placeholder="••••••••" />
+        </div>
 
-          <input
-            className="input-base"
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+        <div className="field">
+          <label className="field-label">Confirm password</label>
+          <PasswordInput value={confirmPassword} onChange={setConfirmPassword} show={showConfirmPassword} onToggle={() => setShowConfirmPassword((p) => !p)} placeholder="••••••••" />
+        </div>
 
-          <div className="relative">
-            <input
-              className="input-base pr-12"
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+        {error && <div className="status-error">{error}</div>}
 
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)]"
-              >
-                {showPassword  ? (
-                  <FiEyeOff size={20} />
-                ) : (
-                  <FiEye size={20} />
-                )}
-            </button>
-          </div>
+        <button type="submit" className="btn btn-primary btn-lg btn-block" style={{ marginTop: "0.35rem" }}>
+          {messages.registerAndLogin.createAccount}
+        </button>
+      </form>
 
-          <div className="relative">
-            <input
-              className="input-base pr-12"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+      <p style={{ marginTop: "1.4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
+        Already have an account?{" "}
+        <Link to="/login" style={{ color: "var(--accent-dark)", fontWeight: 600, textDecoration: "none" }}>
+          {messages.registerAndLogin.signIn}
+        </Link>
+      </p>
+    </AuthShell>
+  );
+}
 
-           <button
-              type="button"
-              onClick={() => setShowConfirmPassword((prev) => !prev)}
-              className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)]"
-            >
-              {showConfirmPassword ? (
-                <FiEyeOff size={20} />
-              ) : (
-                <FiEye size={20} />
-              )}
-          </button>
-          </div>
-
-          {error && (
-            <p className="text-center text-red-500 text-sm mt-1">
-              {error}
-            </p>
-          )}
-          <button type="submit" className=" mt-6 btn btn-accent w-full">
-            {messages.registerAndLogin.createAccount}
-          </button>
-        </form>
-      </div>
+function PasswordInput({ value, onChange, show, onToggle, placeholder }) {
+  return (
+    <div style={{ position: "relative" }}>
+      <input
+        className="input-base"
+        type={show ? "text" : "password"}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ paddingRight: "2.75rem" }}
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={show ? "Hide password" : "Show password"}
+        style={{
+          position: "absolute",
+          right: "0.75rem",
+          top: "50%",
+          transform: "translateY(-50%)",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          color: "var(--text-muted)",
+          display: "flex",
+        }}
+      >
+        {show ? <FiEyeOff size={19} /> : <FiEye size={19} />}
+      </button>
     </div>
   );
 }

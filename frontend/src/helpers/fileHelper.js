@@ -1,8 +1,3 @@
-export function removeSelectedFile(indexToRemove) {
-  setSelectedFiles((prev) => prev.filter((_, index) => index !== indexToRemove));
-}
-
-
 export function getFileBadge(fileName = "") {
   const n = fileName.toLowerCase();
 

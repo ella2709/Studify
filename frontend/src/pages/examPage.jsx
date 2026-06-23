@@ -49,9 +49,7 @@ function ExamPage() {
   const isHebrew = (exam?.language || language) === "he";
   const direction = isHebrew ? "rtl" : "ltr";
 
-  const examHistory = useMemo(() => {
-    return examsQuery.data || [];
-  }, [examsQuery.data]);
+  const examHistory = useMemo(() => examsQuery.data || [], [examsQuery.data]);
 
   useEffect(() => {
     if (!selectedExamQuery.data) return;
@@ -66,16 +64,9 @@ function ExamPage() {
   }, [selectedExamQuery.data]);
 
   useEffect(() => {
-  if (
-    !exam?.id ||
-    !attempt?.id ||
-    result
-  ) {
-    return;
-  }
+    if (!exam?.id || !attempt?.id || result) return;
 
-  const timer =
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       saveAttemptAnswersMutation.mutate({
         examId: exam.id,
         attemptId: attempt.id,
@@ -83,14 +74,8 @@ function ExamPage() {
       });
     }, 700);
 
-  return () =>
-    clearTimeout(timer);
-}, [
-  answers,
-  exam?.id,
-  attempt?.id,
-  result,
-]);
+    return () => clearTimeout(timer);
+  }, [answers, exam?.id, attempt?.id, result]);
 
   function getFriendlyError(message) {
     if (!message) return "";
@@ -101,31 +86,26 @@ function ExamPage() {
         ? `יש שאלות שעדיין לא נענו: ${questions}`
         : `Some questions are still unanswered: ${questions}`;
     }
-
     if (message.includes("No uploaded materials")) {
       return isHebrew
         ? "לא נמצאו חומרי לימוד בפרויקט הזה. יש להעלות חומרי לימוד לפני יצירת מבחן."
         : "No study materials were found for this project. Please upload materials before creating an exam.";
     }
-
     if (message.includes("No relevant material chunks")) {
       return isHebrew
         ? "לא נמצא מספיק מידע רלוונטי בחומרי הלימוד ליצירת מבחן."
         : "Not enough relevant material was found to create an exam.";
     }
-
     if (message.includes("AI returned invalid JSON")) {
       return isHebrew
         ? "המערכת לא הצליחה לבנות מבחן תקין. נסי שוב בעוד רגע."
         : "The system could not generate a valid exam. Please try again.";
     }
-
     return message;
   }
 
   async function handleGenerateExam() {
     setError("");
-
     try {
       const data = await generateExamMutation.mutateAsync({
         projectId,
@@ -134,40 +114,32 @@ function ExamPage() {
         difficulty,
         language,
       });
-
-      navigate(`/project/${projectId}/exam/${data.id}`, {
-        state: { projectName },
-      });
+      navigate(`/project/${projectId}/exam/${data.id}`, { state: { projectName } });
     } catch (err) {
       setError(getFriendlyError(err.message));
     }
   }
 
- async function handleStartExam() {
-  setError("");
-
-  try {
-    const data = await startExamMutation.mutateAsync({
-      examId: exam.id,
-    });
-
-    setAttempt(data);
-    setAnswers(data.answers || {});
-    setResult(null);
-  } catch (err) {
-    setError(getFriendlyError(err.message));
+  async function handleStartExam() {
+    setError("");
+    try {
+      const data = await startExamMutation.mutateAsync({ examId: exam.id });
+      setAttempt(data);
+      setAnswers(data.answers || {});
+      setResult(null);
+    } catch (err) {
+      setError(getFriendlyError(err.message));
+    }
   }
-}
+
   async function handleSubmitExam() {
     setError("");
-
     try {
       const data = await submitExamMutation.mutateAsync({
         examId: exam.id,
         attemptId: attempt.id,
         answers,
       });
-
       setResult(data);
       setAttempt(null);
     } catch (err) {
@@ -177,9 +149,7 @@ function ExamPage() {
   }
 
   function openExam(item) {
-    navigate(`/project/${projectId}/exam/${item.id}`, {
-      state: { projectName },
-    });
+    navigate(`/project/${projectId}/exam/${item.id}`, { state: { projectName } });
   }
 
   function backToSimulator() {
@@ -188,292 +158,252 @@ function ExamPage() {
     setAnswers({});
     setResult(null);
     setError("");
-
-    navigate(`/project/${projectId}/exam`, {
-      state: { projectName },
-    });
+    navigate(`/project/${projectId}/exam`, { state: { projectName } });
   }
 
   return (
-    <div style={pageStyle}>
-      <div style={contentStyle}>
-        <Link
-          to={`/project/${projectId}`}
-          state={{ projectName }}
-          style={backLinkStyle}
-        >
-          ← Back to {projectName}
-        </Link>
+    <div className="app-page fade-in" style={{ maxWidth: 980 }}>
+      <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
+        <ChevronLeft /> Back to {projectName}
+      </Link>
 
-        <h1 style={pageTitleStyle}>Exam Simulator</h1>
+      <div className="page-head">
+        <p className="page-eyebrow">Exam Simulator</p>
+        <h1 className="page-title">Test your knowledge</h1>
+        <p className="page-subtitle">Create an interactive exam based on all materials uploaded to this project.</p>
+      </div>
 
-        <p style={pageSubtitleStyle}>
-          Create an interactive exam based on all materials uploaded to this
-          project.
-        </p>
+      {error && (
+        <div className="alert" style={{ marginBottom: "1.25rem" }}>
+          <div>
+            <strong style={{ display: "block", marginBottom: "0.15rem" }}>Action needed</strong>
+            <span>{error}</span>
+          </div>
+        </div>
+      )}
 
-        {error && <Alert message={error} />}
+      {/* ── Create + history ── */}
+      {!examId && (
+        <>
+          <section className="card card-pad" style={{ marginBottom: "1.5rem" }}>
+            <h2 className="section-title" style={{ marginBottom: "1.1rem" }}>Create New Exam</h2>
 
-        {!examId && (
-          <>
-            <section style={cardStyle}>
-              <h2 style={sectionTitle}>Create New Exam</h2>
-
-              <div style={gridStyle}>
-                <Field label="Exam Type">
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="multiple_choice">Multiple Choice</option>
-                    <option value="open_questions">Open Questions</option>
-                  </select>
-                </Field>
-
-                <Field label="Number of Questions">
-                  <input
-                    type="number"
-                    min="1"
-                    value={numberOfQuestions}
-                    onChange={(e) => setNumberOfQuestions(e.target.value)}
-                    style={inputStyle}
-                  />
-                </Field>
-
-                <Field label="Difficulty">
-                  <select
-                    value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                  </select>
-                </Field>
-
-                <Field label="Exam Language">
-                  <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                    style={inputStyle}
-                  >
-                    <option value="en">English</option>
-                    <option value="he">Hebrew</option>
-                  </select>
-                </Field>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
+              <div className="field">
+                <label className="field-label">Exam Type</label>
+                <select value={type} onChange={(e) => setType(e.target.value)} className="select-base">
+                  <option value="multiple_choice">Multiple Choice</option>
+                  <option value="open_questions">Open Questions</option>
+                </select>
               </div>
 
-              <button
-                onClick={handleGenerateExam}
-                disabled={loading}
-                style={primaryButton}
-              >
-                {generateExamMutation.isPending
-                  ? "Generating..."
-                  : "Generate Exam"}
-              </button>
-            </section>
-
-            <section style={{ ...cardStyle, marginTop: "1.5rem" }}>
-              <h2 style={sectionTitle}>Exam History</h2>
-
-              {examsQuery.isLoading && (
-                <p style={mutedTextStyle}>Loading exams...</p>
-              )}
-
-              {!examsQuery.isLoading && examHistory.length === 0 && (
-                <p style={mutedTextStyle}>
-                  No exams created yet. Generate your first exam above.
-                </p>
-              )}
-
-              <div style={historyListStyle}>
-                {examHistory.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => openExam(item)}
-                    style={historyItemStyle}
-                  >
-                    <div>
-                      <div style={historyTitleStyle}>{item.title}</div>
-                      <div style={historyMetaStyle}>
-                        {item.numberOfQuestions} questions ·{" "}
-                        {item.language === "he" ? "Hebrew" : "English"} ·{" "}
-                        {formatDate(item.updatedAt || item.createdAt)}
-                      </div>
-                    </div>
-
-                    <StatusBadge status={item.status} />
-                  </button>
-                ))}
-              </div>
-            </section>
-          </>
-        )}
-
-        {examId && exam && (
-          <section style={{ ...cardStyle, direction }}>
-            <button onClick={backToSimulator} style={secondaryButton}>
-              ← Back to Exam Simulator
-            </button>
-
-            <div style={examHeaderStyle}>
-              <div>
-                <h2 style={sectionTitle}>{exam.title}</h2>
-                <p style={mutedTextStyle}>
-                  {exam.questions?.length || 0} questions
-                </p>
+              <div className="field">
+                <label className="field-label">Number of Questions</label>
+                <input type="number" min="1" value={numberOfQuestions} onChange={(e) => setNumberOfQuestions(e.target.value)} className="input-base" />
               </div>
 
-              {!attempt && (
-                <button
-                    onClick={handleStartExam}
-                    disabled={loading}
-                    style={primaryButton}
-                >
-                    {result ? "Retake Exam" : "Start Exam"}
-                </button>
-                )}
+              <div className="field">
+                <label className="field-label">Difficulty</label>
+                <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className="select-base">
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+
+              <div className="field">
+                <label className="field-label">Exam Language</label>
+                <select value={language} onChange={(e) => setLanguage(e.target.value)} className="select-base">
+                  <option value="en">English</option>
+                  <option value="he">Hebrew</option>
+                </select>
+              </div>
             </div>
 
-            {attempt && (
-              <div style={{ marginTop: "1.5rem" }}>
-                {exam.questions.map((q, index) => (
-                  <div key={q.id} style={questionStyle}>
-                    <h3 style={questionTitleStyle}>
-                      {index + 1}. {q.question}
-                    </h3>
+            <button onClick={handleGenerateExam} disabled={loading} className="btn btn-primary btn-lg">
+              {generateExamMutation.isPending ? (<><span className="spinner" /> Generating...</>) : "Generate Exam"}
+            </button>
+          </section>
 
-                    {exam.type === "multiple_choice" ? (
-                      <div style={optionsGridStyle}>
-                        {q.options?.map((option) => (
-                          <label key={option} style={optionStyle}>
+          <section className="card card-pad">
+            <h2 className="section-title" style={{ marginBottom: "1rem" }}>Exam History</h2>
+
+            {examsQuery.isLoading && (
+              <div style={{ display: "grid", gap: "0.6rem" }}>
+                {[1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 64 }} />)}
+              </div>
+            )}
+
+            {!examsQuery.isLoading && examHistory.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-icon">🧪</div>
+                <h3 className="empty-title">No exams yet</h3>
+                <p className="empty-text">Generate your first exam above to get started.</p>
+              </div>
+            )}
+
+            <div style={{ display: "grid", gap: "0.7rem" }}>
+              {examHistory.map((item) => (
+                <button key={item.id} onClick={() => openExam(item)} className="file-row" style={{ justifyContent: "space-between", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--text)" }}>
+                  <div>
+                    <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>{item.title}</div>
+                    <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
+                      {item.numberOfQuestions} questions · {item.language === "he" ? "Hebrew" : "English"} · {formatDate(item.updatedAt || item.createdAt)}
+                    </div>
+                  </div>
+                  <StatusBadge status={item.status} />
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* ── Exam taking / review ── */}
+      {examId && exam && (
+        <section className="card card-pad" style={{ direction }}>
+          <button onClick={backToSimulator} className="btn btn-secondary btn-sm" style={{ marginBottom: "1.25rem" }}>
+            ← Back to Exam Simulator
+          </button>
+
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+            <div>
+              <h2 className="section-title">{exam.title}</h2>
+              <p style={{ color: "var(--text-2)", margin: "0.25rem 0 0", fontSize: "0.88rem" }}>
+                {exam.questions?.length || 0} questions
+              </p>
+            </div>
+
+            {!attempt && (
+              <button onClick={handleStartExam} disabled={loading} className="btn btn-primary">
+                {result ? "Retake Exam" : "Start Exam"}
+              </button>
+            )}
+          </div>
+
+          {/* taking */}
+          {attempt && (
+            <div style={{ marginTop: "1.5rem" }}>
+              {exam.questions.map((q, index) => (
+                <div key={q.id} className="card" style={{ padding: "1.1rem", marginBottom: "1rem", background: "var(--bg-inset)" }}>
+                  <h3 style={{ margin: "0 0 0.85rem", fontWeight: 700, lineHeight: 1.55, fontSize: "0.98rem" }}>
+                    {index + 1}. {q.question}
+                  </h3>
+
+                  {exam.type === "multiple_choice" ? (
+                    <div style={{ display: "grid", gap: "0.5rem" }}>
+                      {q.options?.map((option) => {
+                        const checked = answers[q.id] === option;
+                        return (
+                          <label
+                            key={option}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.65rem",
+                              padding: "0.7rem 0.85rem",
+                              borderRadius: "var(--r-sm)",
+                              border: `1.5px solid ${checked ? "var(--accent)" : "var(--border)"}`,
+                              background: checked ? "var(--accent-bg)" : "var(--bg-surface)",
+                              cursor: "pointer",
+                              lineHeight: 1.5,
+                              transition: "border-color 0.14s ease, background 0.14s ease",
+                            }}
+                          >
                             <input
                               type="radio"
                               name={q.id}
                               value={option}
-                              checked={answers[q.id] === option}
-                              onChange={(e) =>
-                                setAnswers((prev) => ({
-                                  ...prev,
-                                  [q.id]: e.target.value,
-                                }))
-                              }
+                              checked={checked}
+                              onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                              style={{ accentColor: "var(--accent)" }}
                             />
                             <span>{option}</span>
                           </label>
-                        ))}
-                      </div>
-                    ) : (
-                      <textarea
-                        value={answers[q.id] || ""}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({
-                            ...prev,
-                            [q.id]: e.target.value,
-                          }))
-                        }
-                        placeholder={
-                          isHebrew ? "כתבי את התשובה שלך..." : "Write your answer..."
-                        }
-                        style={{
-                          ...inputStyle,
-                          minHeight: 130,
-                          resize: "vertical",
-                          direction,
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
-
-                <button
-                  onClick={handleSubmitExam}
-                  disabled={loading}
-                  style={primaryButton}
-                >
-                  {submitExamMutation.isPending ? "Checking..." : "Submit Exam"}
-                </button>
-              </div>
-            )}
-
-            {result && (
-              <div style={{ marginTop: "1.5rem" }}>
-                <h2 style={sectionTitle}>Exam Review</h2>
-
-                <div style={gradeBoxStyle}>
-                  <span style={gradeLabelStyle}>Grade</span>
-                  <strong style={gradeValueStyle}>{result.grade}/100</strong>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <textarea
+                      value={answers[q.id] || ""}
+                      onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                      placeholder={isHebrew ? "כתבי את התשובה שלך..." : "Write your answer..."}
+                      className="input-base"
+                      style={{ minHeight: 130, direction }}
+                    />
+                  )}
                 </div>
+              ))}
 
-                <p style={mutedTextStyle}>
-                  Duration: {Math.round((result.duration || 0) / 60)} minutes
-                </p>
+              <button onClick={handleSubmitExam} disabled={loading} className="btn btn-primary btn-lg">
+                {submitExamMutation.isPending ? (<><span className="spinner" /> Checking...</>) : "Submit Exam"}
+              </button>
+            </div>
+          )}
 
-                <p style={{ color: "var(--text)", lineHeight: 1.7 }}>
-                  {result.feedback?.generalFeedback}
-                </p>
+          {/* review */}
+          {result && (
+            <div style={{ marginTop: "1.5rem" }}>
+              <h2 className="section-title" style={{ marginBottom: "1rem" }}>Exam Review</h2>
 
-                {result.feedback?.recommendations?.length > 0 && (
-                  <div style={reviewBlockStyle}>
-                    <strong>Recommendations</strong>
-                    <ul>
-                      {result.feedback.recommendations.map((rec, index) => (
-                        <li key={index}>{rec}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {result.feedback?.questionsFeedback?.map((item, index) => (
-                  <div key={item.questionId} style={questionStyle}>
-                    <strong>
-                      Question {index + 1} — {item.status}
-                    </strong>
-                    <p>Your answer: {item.userAnswer}</p>
-                    <p>Correct answer: {item.correctAnswer}</p>
-                    <p>{item.feedback}</p>
-                  </div>
-                ))}
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+                <div className="card" style={{ padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.2rem", minWidth: 150 }}>
+                  <span style={{ color: "var(--text-2)", fontSize: "0.82rem" }}>Grade</span>
+                  <strong style={{ color: "var(--accent-dark)", fontSize: "2rem", lineHeight: 1 }}>{result.grade}<span style={{ fontSize: "1rem", color: "var(--text-muted)" }}>/100</span></strong>
+                </div>
+                <div className="card" style={{ padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.2rem", minWidth: 150 }}>
+                  <span style={{ color: "var(--text-2)", fontSize: "0.82rem" }}>Duration</span>
+                  <strong style={{ fontSize: "1.5rem", lineHeight: 1 }}>{Math.round((result.duration || 0) / 60)}<span style={{ fontSize: "0.95rem", color: "var(--text-muted)" }}> min</span></strong>
+                </div>
               </div>
-            )}
-          </section>
-        )}
-      </div>
-    </div>
-  );
-}
 
-function Field({ label, children }) {
-  return (
-    <label style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-      <span style={fieldLabelStyle}>{label}</span>
-      {children}
-    </label>
-  );
-}
+              {result.feedback?.generalFeedback && (
+                <p style={{ color: "var(--text)", lineHeight: 1.7, marginBottom: "1.25rem" }}>
+                  {result.feedback.generalFeedback}
+                </p>
+              )}
 
-function Alert({ message }) {
-  return (
-    <div style={alertStyle}>
-      <strong style={{ display: "block", marginBottom: "0.25rem" }}>
-        Action needed
-      </strong>
-      <span>{message}</span>
+              {result.feedback?.recommendations?.length > 0 && (
+                <div className="card" style={{ padding: "1.1rem", marginBottom: "1.25rem", background: "var(--accent-bg)", border: "1px solid var(--border)" }}>
+                  <strong style={{ display: "block", marginBottom: "0.5rem" }}>Recommendations</strong>
+                  <ul style={{ margin: 0, paddingInlineStart: 20, lineHeight: 1.7 }}>
+                    {result.feedback.recommendations.map((rec, index) => <li key={index}>{rec}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              {result.feedback?.questionsFeedback?.map((item, index) => {
+                const correct = item.status === "correct";
+                return (
+                  <div key={item.questionId} className="card" style={{ padding: "1.1rem", marginBottom: "0.85rem", background: "var(--bg-inset)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "0.6rem" }}>
+                      <strong style={{ fontSize: "0.95rem" }}>Question {index + 1}</strong>
+                      <span className={`badge ${correct ? "badge-success" : "badge-warning"}`}>
+                        {correct ? "✓ Correct" : "✕ " + item.status}
+                      </span>
+                    </div>
+                    <p style={{ margin: "0 0 0.3rem", fontSize: "0.88rem" }}><span style={{ color: "var(--text-muted)" }}>Your answer: </span>{item.userAnswer}</p>
+                    <p style={{ margin: "0 0 0.5rem", fontSize: "0.88rem" }}><span style={{ color: "var(--text-muted)" }}>Correct answer: </span>{item.correctAnswer}</p>
+                    {item.feedback && <p style={{ margin: 0, color: "var(--text-2)", fontSize: "0.88rem", lineHeight: 1.6 }}>{item.feedback}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
 
 function StatusBadge({ status }) {
-  const labels = {
-    in_progress: "In progress",
-    not_started: "Not started",
-    completed: "Completed",
+  const map = {
+    in_progress: { cls: "badge-warning", label: "In progress" },
+    not_started: { cls: "badge-info", label: "Not started" },
+    completed: { cls: "badge-success", label: "Completed" },
   };
-
-  return <span style={badgeStyle(status)}>{labels[status] || status}</span>;
+  const s = map[status] || { cls: "badge-neutral", label: status };
+  return <span className={`badge ${s.cls}`}>{s.label}</span>;
 }
 
 function formatDate(value) {
@@ -481,234 +411,13 @@ function formatDate(value) {
   return new Date(value).toLocaleDateString();
 }
 
-const pageStyle = {
-  width: "100%",
-  minHeight: "100%",
-  overflowY: "auto",
-  overflowX: "hidden",
-  padding: "0 1.5rem 2rem",
-};
-
-const contentStyle = {
-  maxWidth: 980,
-  margin: "0 auto",
-};
-
-const backLinkStyle = {
-  fontSize: "0.875rem",
-  color: "var(--text-muted)",
-  textDecoration: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "0.375rem",
-  marginBottom: "1.5rem",
-};
-
-const pageTitleStyle = {
-  fontSize: "1.875rem",
-  fontWeight: 800,
-  color: "var(--text)",
-  margin: "0 0 0.5rem",
-};
-
-const pageSubtitleStyle = {
-  color: "var(--text-2)",
-  marginBottom: "2rem",
-};
-
-const cardStyle = {
-  background: "var(--bg-surface)",
-  border: "1px solid var(--border)",
-  borderRadius: "1rem",
-  padding: "1.5rem",
-  boxShadow: "var(--shadow-card)",
-};
-
-const sectionTitle = {
-  fontSize: "1.25rem",
-  fontWeight: 800,
-  color: "var(--text)",
-  margin: "0 0 1rem",
-};
-
-const gridStyle = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-  gap: "1rem",
-  marginBottom: "1.25rem",
-};
-
-const fieldLabelStyle = {
-  fontSize: "0.8125rem",
-  fontWeight: 700,
-  color: "var(--text)",
-};
-
-const inputStyle = {
-  width: "100%",
-  border: "1px solid var(--border)",
-  borderRadius: "0.75rem",
-  padding: "0.75rem 0.875rem",
-  background: "var(--bg)",
-  color: "var(--text)",
-  fontSize: "0.875rem",
-  outline: "none",
-};
-
-const primaryButton = {
-  border: "none",
-  borderRadius: "0.75rem",
-  background: "var(--accent)",
-  color: "white",
-  padding: "0.75rem 1.1rem",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const secondaryButton = {
-  border: "1px solid var(--border)",
-  borderRadius: "0.75rem",
-  background: "var(--bg)",
-  color: "var(--text)",
-  padding: "0.65rem 0.95rem",
-  fontWeight: 700,
-  cursor: "pointer",
-  marginBottom: "1rem",
-};
-
-const alertStyle = {
-  background: "#FEF2F2",
-  border: "1px solid #FECACA",
-  color: "#991B1B",
-  padding: "0.9rem 1rem",
-  borderRadius: "0.875rem",
-  marginBottom: "1rem",
-  fontSize: "0.9rem",
-  lineHeight: 1.5,
-};
-
-const historyListStyle = {
-  display: "grid",
-  gap: "0.75rem",
-};
-
-const historyItemStyle = {
-  width: "100%",
-  border: "1px solid var(--border)",
-  background: "var(--bg)",
-  borderRadius: "0.875rem",
-  padding: "1rem",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: "1rem",
-  textAlign: "left",
-  cursor: "pointer",
-};
-
-const historyTitleStyle = {
-  fontWeight: 800,
-  color: "var(--text)",
-  marginBottom: "0.25rem",
-};
-
-const historyMetaStyle = {
-  fontSize: "0.825rem",
-  color: "var(--text-2)",
-};
-
-const mutedTextStyle = {
-  color: "var(--text-2)",
-  margin: 0,
-};
-
-const examHeaderStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: "1rem",
-  alignItems: "flex-start",
-};
-
-const questionStyle = {
-  border: "1px solid var(--border)",
-  borderRadius: "0.875rem",
-  padding: "1rem",
-  marginBottom: "1rem",
-  background: "var(--bg)",
-};
-
-const questionTitleStyle = {
-  margin: "0 0 0.75rem",
-  color: "var(--text)",
-  fontWeight: 700,
-  lineHeight: 1.6,
-};
-
-const optionsGridStyle = {
-  display: "grid",
-  gap: "0.625rem",
-};
-
-const optionStyle = {
-  display: "flex",
-  gap: "0.625rem",
-  alignItems: "center",
-  color: "var(--text)",
-  lineHeight: 1.6,
-};
-
-const gradeBoxStyle = {
-  border: "1px solid var(--border)",
-  borderRadius: "0.875rem",
-  padding: "1rem",
-  display: "inline-flex",
-  flexDirection: "column",
-  gap: "0.25rem",
-  marginBottom: "1rem",
-};
-
-const gradeLabelStyle = {
-  color: "var(--text-2)",
-  fontSize: "0.85rem",
-};
-
-const gradeValueStyle = {
-  color: "var(--accent)",
-  fontSize: "2rem",
-};
-
-const reviewBlockStyle = {
-  border: "1px solid var(--border)",
-  borderRadius: "0.875rem",
-  padding: "1rem",
-  marginBottom: "1rem",
-  color: "var(--text)",
-};
-
-const badgeStyle = (status) => {
-  const colors = {
-    in_progress: {
-      background: "#FEF3C7",
-      color: "#92400E",
-    },
-    not_started: {
-      background: "#E0F2FE",
-      color: "#075985",
-    },
-    completed: {
-      background: "#DCFCE7",
-      color: "#166534",
-    },
-  };
-
-  return {
-    ...(colors[status] || colors.not_started),
-    borderRadius: "999px",
-    padding: "0.35rem 0.75rem",
-    fontSize: "0.75rem",
-    fontWeight: 800,
-    whiteSpace: "nowrap",
-  };
-};
+function ChevronLeft() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
 
 export default ExamPage;
