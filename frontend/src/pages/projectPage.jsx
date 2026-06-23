@@ -41,7 +41,13 @@ function ProjectPage() {
   ];
 
   return (
-    <div className="app-page fade-in" style={{ maxWidth: 920 }}>
+    <div
+      className="app-page app-page--full fade-in"
+      style={{
+        width: "100%",
+        maxWidth: "1200px",
+      }}
+      >
       <div className="page-head">
         <Link to="/" className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
           <ChevronLeft /> All projects
