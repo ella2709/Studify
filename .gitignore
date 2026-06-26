@@ -6,9 +6,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-node_modules
-dist
 dist-ssr
 *.local
 
@@ -23,4 +20,17 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables
+.env
+
+# Backend secrets
+backend/.env
 backend/config/serviceAccountKey.json
+
+# Frontend env
+frontend/.env
+
+# Dependencies/build
+node_modules/
+dist/
+build/
