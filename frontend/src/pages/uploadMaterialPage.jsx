@@ -98,12 +98,13 @@ function UploadMaterialPage() {
 
   return (
     <div
-      className="app-page app-page--full fade-in"
-      style={{
-        width: "100%",
-        maxWidth: "1200px",
-      }}
-      >
+        className="app-page fade-in"
+        style={{
+          maxWidth: 940,
+          paddingTop: "1rem",
+          paddingBottom: 0,
+        }}
+    >
       <div className="page-head">
         <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
           <ChevronLeft /> {projectName}
@@ -122,7 +123,7 @@ function UploadMaterialPage() {
       )}
 
       {/* Dropzone */}
-      <div className="card" style={{ padding: "1.25rem", marginBottom: "1.5rem" }}>
+      <div className="card" style={{ padding: "1rem", marginBottom: "1rem" }}>
         <input
           id="file-upload"
           type="file"
@@ -140,7 +141,7 @@ function UploadMaterialPage() {
             justifyContent: "center",
             gap: "0.6rem",
             textAlign: "center",
-            padding: "1.6rem 1rem",
+            padding: "1.1rem 1rem",
             border: "2px dashed var(--border-2)",
             borderRadius: "var(--r-md)",
             background: "var(--bg-inset)",
@@ -218,7 +219,7 @@ function UploadMaterialPage() {
       </div>
 
       {/* Uploaded files */}
-      <section className="card" style={{ padding: "1.25rem" }}>
+      <section className="card" style={{ padding: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
           <div>
             <h2 className="section-title">Uploaded files</h2>
@@ -242,7 +243,7 @@ function UploadMaterialPage() {
         )}
 
         {!loadingList && uploadedFiles.length === 0 && (
-          <div className="empty-state">
+          <div className="empty-state" style={{ padding: "1.5rem 1rem" }}>
             <div className="empty-icon">📄</div>
             <h3 className="empty-title">No study files yet</h3>
             <p className="empty-text">Select files above and upload them to start using this project.</p>

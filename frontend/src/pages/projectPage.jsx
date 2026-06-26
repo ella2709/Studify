@@ -58,12 +58,16 @@ function ProjectPage() {
       </div>
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-          gap: "1.1rem",
-        }}
-      >
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(340px, 1fr))",
+            gap: "1.5rem",
+            maxWidth: "820px",
+            margin: "2rem auto 0",
+            justifyContent: "center",
+            alignContent: "center",
+          }}
+        >
         {tools.map((tool) => (
           <ToolCard key={tool.to} {...tool} projectName={projectName} />
         ))}

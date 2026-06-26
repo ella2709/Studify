@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const materialsRepository = require("../services/materialService");
 const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
 const { generateEmbedding } = require("../helpers/embeddingHelper");
+const { extractTextFromFile } = require("../helpers/extractTextFromFile");
 
 function getProjectId(req) {
   const projectId =
@@ -37,7 +38,8 @@ async function uploadMaterials(req, res) {
     const savedFiles = [];
 
     for (const file of files) {
-      const normalizedText = normalizeText(file.buffer.toString("utf-8"));
+      const extractedText = await extractTextFromFile(file);
+      const normalizedText = normalizeText(extractedText);
       const chunks = splitTextIntoChunks(normalizedText);
 
       const chunkObjects = [];

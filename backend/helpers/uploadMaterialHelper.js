@@ -15,7 +15,14 @@ const upload = multer({
       "text/csv",
     ];
 
-    const allowedExtensions = [".txt", ".md", ".json", ".csv"];
+    const allowedExtensions = [
+  ".txt", ".md", ".json", ".csv", ".rtf",
+  ".pdf", ".docx", ".xlsx", ".pptx",
+  ".js", ".jsx", ".ts", ".tsx",
+  ".py", ".java", ".c", ".cpp", ".h", ".hpp",
+  ".cs", ".sql", ".html", ".css",
+  ".xml", ".yaml", ".yml", ".ipynb",
+  ];
     const lowerName = file.originalname.toLowerCase();
     const isAllowedExtension = allowedExtensions.some((ext) =>
       lowerName.endsWith(ext)
@@ -25,7 +32,7 @@ const upload = multer({
       return cb(null, true);
     }
 
-    cb(new Error("Only txt, md, json, csv files are allowed right now"));
+    cb(new Error("This file type is not supported."));
   },
 });
 
