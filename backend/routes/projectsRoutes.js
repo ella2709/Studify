@@ -11,9 +11,9 @@ const {
 
 const router = express.Router();
 
-router.delete("/:projectId", deleteProject);
-
 router.use(authHelper);
+
+router.delete("/:projectId", deleteProject);
 
 router.get("/", getProjects);
 router.post("/", createProject);
