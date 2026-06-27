@@ -128,7 +128,7 @@ function UploadMaterialPage() {
           id="file-upload"
           type="file"
           multiple
-          accept=".txt,.md,.json,.csv,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+          accept=".txt,.md,.json,.csv,.rtf,.pdf,.docx,.xlsx,.pptx,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.hpp,.cs,.sql,.html,.css,.xml,.yaml,.yml,.ipynb"
           onChange={handleFileChange}
           style={{ display: "none" }}
         />
@@ -165,7 +165,7 @@ function UploadMaterialPage() {
           <div>
             <div style={{ fontSize: "1rem", fontWeight: 700 }}>Choose files to upload</div>
             <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: 3 }}>
-              Supported: txt, md, json, csv, pdf, docx, pptx, xlsx
+              Supported: PDF, Word, Excel, PowerPoint, text and code files
             </div>
           </div>
         </label>
@@ -261,9 +261,7 @@ function UploadMaterialPage() {
                   </p>
                   <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                     <span className="meta-pill">{formatFileSize(file.size)}</span>
-                    <span className="meta-pill">{file.mimeType || "unknown"}</span>
                     {formatUploadDate(file) && <span className="meta-pill">🕑 {formatUploadDate(file)}</span>}
-                    {file.chunksCount !== undefined && <span className="meta-pill">{file.chunksCount} chunks</span>}
                   </div>
                 </div>
                 <button type="button" onClick={() => setMaterialToDelete(file)} className="btn btn-ghost btn-sm" style={{ flexShrink: 0 }}>

@@ -2,7 +2,7 @@ const path = require("path");
 const pdfParse = require("pdf-parse");
 const mammoth = require("mammoth");
 const XLSX = require("xlsx");
-const pptxParser = require("node-pptx-parser");
+const AdmZip = require("adm-zip");
 
 const TEXT_BASED_EXTENSIONS = [
   ".txt", ".md", ".json", ".csv", ".rtf",
@@ -13,6 +13,7 @@ const TEXT_BASED_EXTENSIONS = [
 ];
 
 async function extractTextFromFile(file) {
+
   const extension = path.extname(file.originalname).toLowerCase();
 
   if (TEXT_BASED_EXTENSIONS.includes(extension)) {
@@ -44,23 +45,44 @@ async function extractTextFromFile(file) {
     return text;
   }
 
-  if (extension === ".pptx") {
-    const slides = await pptxParser.parse(file.buffer);
+ if (extension === ".pptx") {
+  const zip = new AdmZip(file.buffer);
+  const entries = zip.getEntries();
 
-    if (Array.isArray(slides)) {
-      return slides
-        .map((slide, index) => {
-          if (typeof slide === "string") {
-            return `Slide ${index + 1}:\n${slide}`;
-          }
+  let text = "";
 
-          return `Slide ${index + 1}:\n${JSON.stringify(slide)}`;
-        })
-        .join("\n\n");
+  entries.forEach((entry) => {
+    if (
+      entry.entryName.startsWith("ppt/slides/slide") &&
+      entry.entryName.endsWith(".xml")
+    ) {
+      const xml = entry.getData().toString("utf8");
+
+      const matches = xml.match(/<a:t>(.*?)<\/a:t>/g) || [];
+
+      matches.forEach((match) => {
+        const cleanText = match
+          .replace("<a:t>", "")
+          .replace("</a:t>", "")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&apos;/g, "'");
+
+        text += cleanText + "\n";
+      });
+
+      text += "\n";
     }
+  });
 
-    return String(slides || "");
+  if (!text.trim()) {
+    throw new Error("Could not extract text from this PowerPoint file.");
   }
+
+  return text;
+}
 
   throw new Error("This file type is not supported.");
 }

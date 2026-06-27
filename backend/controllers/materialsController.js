@@ -42,6 +42,12 @@ async function uploadMaterials(req, res) {
       const normalizedText = normalizeText(extractedText);
       const chunks = splitTextIntoChunks(normalizedText);
 
+      if (chunks.length === 0) {
+        return res.status(400).json({
+          error: `No readable text was found in file: ${file.originalname}`,
+        });
+      }
+
       const chunkObjects = [];
 
       for (let i = 0; i < chunks.length; i++) {
@@ -61,12 +67,12 @@ async function uploadMaterials(req, res) {
         originalName: file.originalname,
         mimeType: file.mimetype,
         size: file.size,
-        text: normalizedText,
-        chunks: chunkObjects,
+        chunksCount: chunkObjects.length,
       };
 
-      const savedMaterial = await materialsRepository.addMaterial(
+      const savedMaterial = await materialsRepository.addMaterialWithChunks(
         material,
+        chunkObjects,
         projectId,
         userId
       );

@@ -18,7 +18,7 @@ function toMaterialDto(doc) {
     data.mimeType || "",
     data.size || 0,
     data.uploadedAt || null,
-    data.chunks?.length || 0
+    data.chunksCount || 0
   );
 }
 

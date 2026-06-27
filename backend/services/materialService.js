@@ -18,16 +18,52 @@ function getMaterialsCollection(userId, projectId) {
     .collection("materials");
 }
 
-async function addMaterial(material, projectId, userId) {
+  async function addMaterialWithChunks(material, chunks, projectId, userId) {
   const materialRef = getMaterialsCollection(userId, projectId).doc(material.id);
 
   await materialRef.set({
-    ...material,
+    id: material.id,
+    originalName: material.originalName,
+    mimeType: material.mimeType,
+    size: material.size,
+    chunksCount: chunks.length,
     uploadedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
+  const CHUNKS_PER_BATCH = 5;
+
+  for (let i = 0; i < chunks.length; i += CHUNKS_PER_BATCH) {
+    const batch = db.batch();
+    const batchChunks = chunks.slice(i, i + CHUNKS_PER_BATCH);
+
+    batchChunks.forEach((chunk) => {
+      const chunkRef = materialRef.collection("chunks").doc(chunk.id);
+
+      batch.set(chunkRef, {
+        id: chunk.id,
+        chunkIndex: chunk.chunkIndex,
+        text: chunk.text,
+        embedding: chunk.embedding,
+      });
+    });
+
+    await batch.commit();
+  }
+
   const createdDoc = await materialRef.get();
   return toMaterialDto(createdDoc);
+}
+
+async function getChunksForMaterial(materialRef) {
+  const snapshot = await materialRef
+    .collection("chunks")
+    .orderBy("chunkIndex", "asc")
+    .get();
+
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
 }
 
 async function getAllMaterials(projectId, userId) {
@@ -35,10 +71,19 @@ async function getAllMaterials(projectId, userId) {
     .orderBy("uploadedAt", "desc")
     .get();
 
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+  const materials = [];
+
+  for (const doc of snapshot.docs) {
+    const chunks = await getChunksForMaterial(doc.ref);
+
+    materials.push({
+      id: doc.id,
+      ...doc.data(),
+      chunks,
+    });
+  }
+
+  return materials;
 }
 
 async function getMaterialById(id, projectId, userId) {
@@ -48,9 +93,12 @@ async function getMaterialById(id, projectId, userId) {
     return null;
   }
 
+  const chunks = await getChunksForMaterial(doc.ref);
+
   return {
     id: doc.id,
     ...doc.data(),
+    chunks,
   };
 }
 
@@ -63,11 +111,28 @@ async function getAllMaterialsMetadata(projectId, userId) {
 }
 
 async function removeMaterial(id, projectId, userId) {
-  await getMaterialsCollection(userId, projectId).doc(id).delete();
+  const materialRef = getMaterialsCollection(userId, projectId).doc(id);
+
+  const chunksSnapshot = await materialRef.collection("chunks").get();
+
+  const CHUNKS_PER_BATCH = 5;
+
+  for (let i = 0; i < chunksSnapshot.docs.length; i += CHUNKS_PER_BATCH) {
+    const batch = db.batch();
+    const chunkDocs = chunksSnapshot.docs.slice(i, i + CHUNKS_PER_BATCH);
+
+    chunkDocs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+  }
+
+  await materialRef.delete();
 }
 
 module.exports = {
-  addMaterial,
+  addMaterialWithChunks,
   getAllMaterials,
   getMaterialById,
   getAllMaterialsMetadata,
