@@ -5,10 +5,13 @@ const {
   getProjects,
   getProjectById,
   createProject,
-} = require("../controllers/projectController");
+  deleteProject,
+} = require("../controllers/projectController");;
 
 
 const router = express.Router();
+
+router.delete("/:projectId", deleteProject);
 
 router.use(authHelper);
 

@@ -1,9 +1,10 @@
-import { PlusIcon, SearchIcon } from "./iconsAndButtons";
+import { PlusIcon, SearchIcon, TrashIcon } from "./iconsAndButtons";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { safeFormatDate } from "../helpers/dateHelper";
 import messages from "../messages.js";
 import { auth } from "../authentication/firebaseAuth";
+import ConfirmDialog from "./ConfirmDialog";
 
 export function HomeContent({
   projects = [],
@@ -11,6 +12,7 @@ export function HomeContent({
   projectsError,
   onCreateProject,
   onRefresh,
+  onDeleteProject,
 }) {
   const userName = auth.currentUser?.displayName;
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,7 +111,7 @@ export function HomeContent({
         {!projectsLoading && !projectsError && visibleProjects.length > 0 && (
           <div className="projects-grid">
             {visibleProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} onDeleteProject={onDeleteProject}/>
             ))}
           </div>
         )}
@@ -118,40 +120,83 @@ export function HomeContent({
   );
 }
 
-export function ProjectCard({ project }) {
+export function ProjectCard({ project, onDeleteProject }) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const name = project.name || "Untitled";
   const filesCount = project.filesCount ?? project.files;
   const chatsCount = project.chatsCount ?? project.chats;
   const updatedAt = safeFormatDate(project.updatedAt ?? project.updated);
 
+  const handleDeleteClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onDeleteProject?.(project.id);
+    setDeleteDialogOpen(false);
+  };
+
   return (
-    <Link to={`/project/${project.id}`} state={{ projectName: name }} className="project-card">
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div className="project-card__icon">📚</div>
-        <ArrowIcon />
-      </div>
+    <>
+      <Link to={`/project/${project.id}`} state={{ projectName: name }} className="project-card">
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className="project-card__icon">📚</div>
 
-      <h3
-        style={{
-          fontSize: "1.1rem",
-          fontWeight: 700,
-          margin: 0,
-          lineHeight: 1.3,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-        title={name}
-      >
-        {name}
-      </h3>
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            aria-label="Delete project"
+            title="Delete project"
+            style={{
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              padding: "0.25rem",
+              color: "var(--text-muted)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <TrashIcon />
+          </button>
+        </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "auto" }}>
-        {filesCount !== undefined && <span className="meta-pill">📎 {filesCount} files</span>}
-        {chatsCount !== undefined && <span className="meta-pill">💬 {chatsCount} chats</span>}
-        {updatedAt && <span className="meta-pill">🕑 {updatedAt}</span>}
-      </div>
-    </Link>
+        <h3
+          style={{
+            fontSize: "1.1rem",
+            fontWeight: 700,
+            margin: 0,
+            lineHeight: 1.3,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={name}
+        >
+          {name}
+        </h3>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "auto" }}>
+          {filesCount !== undefined && <span className="meta-pill">📎 {filesCount} files</span>}
+          {chatsCount !== undefined && <span className="meta-pill">💬 {chatsCount} chats</span>}
+          {updatedAt && <span className="meta-pill">🕑 {updatedAt}</span>}
+        </div>
+      </Link>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        title="Delete project?"
+        message={`Are you sure you want to delete "${name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteDialogOpen(false)}
+      />
+    </>
   );
 }
 

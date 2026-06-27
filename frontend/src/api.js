@@ -25,6 +25,7 @@ export const API = {
 
   GET_PROJECTS: `${BASE_URL}/api/projects`,
   CREATE_PROJECT: `${BASE_URL}/api/projects`,
+  DELETE_PROJECT: (projectId) => `${BASE_URL}/api/projects/${projectId}`,
 
   GENERATE_EXAM: `${BASE_URL}/api/exams/generate`,
   GET_PROJECT_EXAMS: (projectId) => `${BASE_URL}/api/exams/project/${projectId}`,

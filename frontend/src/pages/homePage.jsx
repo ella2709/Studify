@@ -6,6 +6,7 @@ function HomePage({
   projectsError,
   onCreateProject,
   onRefresh,
+  onDeleteProject,
 }) {
   return (
     <HomeContent
@@ -14,6 +15,7 @@ function HomePage({
       projectsError={projectsError}
       onCreateProject={onCreateProject}
       onRefresh={onRefresh}
+      onDeleteProject={onDeleteProject}
     />
   );
 }

@@ -14,7 +14,7 @@ import { useAuth } from "./authentication/authContext";
 
 import MainLayout from "./components/mainLayout";
 import { CreateProjectModal } from "./components/homePageComponents";
-import { useProjects, useCreateProject } from "./services/projectService";
+import {useProjects, useCreateProject, useDeleteProject, } from "./services/projectService";
 
 function App() {
   const [isDark, setIsDark] = useState(false);
@@ -26,6 +26,7 @@ function App() {
   const { user, loading } = useAuth();
 
   const createProjectMutation = useCreateProject();
+  const deleteProjectMutation = useDeleteProject();
 
   const {
     data: projects = [],
@@ -74,6 +75,14 @@ function App() {
     }
   }
 
+  async function handleDeleteProject(projectId) {
+  try {
+    await deleteProjectMutation.mutateAsync(projectId);
+  } catch (err) {
+    console.error("Failed to delete project:", err);
+  }
+}
+
   return (
   <>
     <Routes>
@@ -97,13 +106,14 @@ function App() {
                   <Route
                     path="/"
                     element={
-                      <HomePage
-                        projects={projects}
-                        projectsLoading={projectsLoading}
-                        projectsError={projectsError}
-                        onCreateProject={openCreate}
-                        onRefresh={refetch}
-                      />
+                     <HomePage
+                      projects={projects}
+                      projectsLoading={projectsLoading}
+                      projectsError={projectsError}
+                      onCreateProject={openCreate}
+                      onRefresh={refetch}
+                      onDeleteProject={handleDeleteProject}
+                    />
                     }
                   />
 

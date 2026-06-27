@@ -38,8 +38,21 @@ async function createProject(name, userId) {
   return toProjectDto(createdDoc);
 }
 
+async function deleteProject(projectId, userId) {
+  const projectRef = getProjectsCollection(userId).doc(projectId);
+
+  const doc = await projectRef.get();
+
+  if (!doc.exists) {
+    throw new Error("Project not found");
+  }
+
+  await projectRef.delete();
+}
+
 module.exports = {
   getProjects,
   getProjectById,
   createProject,
+  deleteProject,
 };

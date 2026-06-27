@@ -41,6 +41,28 @@ export async function createProject(name) {
   return data.project;
 }
 
+export async function deleteProject(projectId) {
+  const res = await fetch(API.DELETE_PROJECT(projectId), {
+    method: "DELETE",
+    headers: await getAuthHeaders(),
+  });
+
+  await handleResponse(res);
+}
+
+export const useDeleteProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["projects"],
+      });
+    },
+  });
+};
+
 export const useCreateProject = () => {
   const queryClient = useQueryClient();
 
@@ -51,3 +73,4 @@ export const useCreateProject = () => {
     },
   });
 };
+

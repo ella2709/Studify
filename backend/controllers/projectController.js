@@ -55,8 +55,28 @@ async function createProject(req, res) {
   }
 }
 
+async function deleteProject(req, res) {
+  try {
+    const { projectId } = req.params;
+    const userId = req.user.uid;
+
+    await projectService.deleteProject(projectId, userId);
+
+    res.status(200).json({
+      message: "Project deleted successfully",
+    });
+  } catch (err) {
+    console.error("DELETE PROJECT ERROR:", err);
+
+    res.status(500).json({
+      error: err?.message || "Failed to delete project",
+    });
+  }
+}
+
 module.exports = {
   getProjects,
   getProjectById,
   createProject,
+  deleteProject,
 };
