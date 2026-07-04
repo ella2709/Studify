@@ -164,18 +164,17 @@ function ExamPage() {
 
   return (
     <div className="app-page app-page--full fade-in" style={{ maxWidth: 980 }}>
-      <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem", flexShrink: 0 }}>
+      <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.5rem", flexShrink: 0 }}>
         <ChevronLeft />{projectName}
       </Link>
 
-      <div className="page-head" style={{ flexShrink: 0 }}>
+      <div className="page-head" style={{ flexShrink: 0, marginBottom: "0.6rem" }}>
         <p className="page-eyebrow">Exam Simulator</p>
         <h1 className="page-title">Test your knowledge</h1>
-        <p className="page-subtitle">Create an interactive exam based on all materials uploaded to this project.</p>
       </div>
 
       {error && (
-        <div className="alert" style={{ marginBottom: "1.25rem", flexShrink: 0 }}>
+        <div className="alert" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
           <div>
             <strong style={{ display: "block", marginBottom: "0.15rem" }}>Action needed</strong>
             <span>{error}</span>
@@ -186,10 +185,10 @@ function ExamPage() {
       {/* ── Create + history ── */}
       {!examId && (
         <>
-          <section className="card card-pad" style={{ marginBottom: "1.5rem", flexShrink: 0 }}>
-            <h2 className="section-title" style={{ marginBottom: "1.1rem" }}>Create New Exam</h2>
+          <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
+            <h2 className="section-title" style={{ marginBottom: "0.75rem" }}>Create New Exam</h2>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.75rem", marginBottom: "0.85rem" }}>
               <div className="field">
                 <label className="field-label">Exam Type</label>
                 <select value={type} onChange={(e) => setType(e.target.value)} className="select-base">
