@@ -86,17 +86,17 @@ function SummarizePage() {
   }
 
   return (
-    <div className="app-page fade-in" style={{ maxWidth: 980 }}>
+    <div className="app-page app-page--full fade-in" style={{ maxWidth: 980 }}>
       <Link
         to={`/project/${projectId}`}
         state={{ projectName }}
         className="breadcrumb"
-        style={{ marginBottom: "0.9rem" }}
+        style={{ marginBottom: "0.9rem", flexShrink: 0 }}
       >
         <ChevronLeft />{projectName}
       </Link>
 
-      <div className="page-head">
+      <div className="page-head" style={{ flexShrink: 0 }}>
         <p className="page-eyebrow">Summary Generator</p>
         <h1 className="page-title">Summarize your materials</h1>
         <p className="page-subtitle">
@@ -105,7 +105,7 @@ function SummarizePage() {
       </div>
 
       {error && (
-        <div className="alert" style={{ marginBottom: "1.25rem" }}>
+        <div className="alert" style={{ marginBottom: "1.25rem", flexShrink: 0 }}>
           <div>
             <strong style={{ display: "block", marginBottom: "0.15rem" }}>
               Action needed
@@ -115,7 +115,7 @@ function SummarizePage() {
         </div>
       )}
 
-      <section className="card card-pad" style={{ marginBottom: "1.5rem" }}>
+      <section className="card card-pad" style={{ marginBottom: "1.5rem", flexShrink: 0 }}>
         <h3 className="section-title" style={{ marginBottom: "0.6rem" }}>
           What would you like to summarize?
         </h3>
@@ -150,7 +150,7 @@ function SummarizePage() {
       </section>
 
       {createdSummary && (
-        <section className="card card-pad" style={{ marginBottom: "1.5rem" }}>
+        <section className="card card-pad" style={{ marginBottom: "1.5rem", flexShrink: 0 }}>
           <h2 className="section-title" style={{ marginBottom: "1rem" }}>
             Generated Summary
           </h2>
@@ -182,8 +182,17 @@ function SummarizePage() {
         </section>
       )}
 
-      <section className="card card-pad">
-        <h2 className="section-title" style={{ marginBottom: "1rem" }}>
+      <section
+        className="card card-pad"
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          minHeight: 0,
+        }}
+      >
+        <h2 className="section-title" style={{ marginBottom: "1rem", flexShrink: 0 }}>
           Summary History
         </h2>
 
@@ -195,44 +204,46 @@ function SummarizePage() {
           </div>
         )}
 
-        {!summariesQuery.isLoading && summariesHistory.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-icon">📝</div>
-            <h3 className="empty-title">No summaries yet</h3>
-            <p className="empty-text">
-              Generate your first summary above to get started.
-            </p>
+        <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+          {!summariesQuery.isLoading && summariesHistory.length === 0 && (
+            <div className="empty-state">
+              <div className="empty-icon">📝</div>
+              <h3 className="empty-title">No summaries yet</h3>
+              <p className="empty-text">
+                Generate your first summary above to get started.
+              </p>
+            </div>
+          )}
+
+          <div style={{ display: "grid", gap: "0.7rem" }}>
+            {summariesHistory.map((summary) => (
+              <button
+                key={summary.id}
+                onClick={() => downloadSummary(summary)}
+                className="file-row"
+                style={{
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  font: "inherit",
+                  color: "var(--text)",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>
+                    {summary.title}
+                  </div>
+
+                  <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
+                    {summary.instruction || "Generated summary"} ·{" "}
+                    {safeFormatDate(summary.updatedAt || summary.createdAt)}
+                  </div>
+                </div>
+
+                <StatusBadge status={summary.status} />
+              </button>
+            ))}
           </div>
-        )}
-
-        <div style={{ display: "grid", gap: "0.7rem" }}>
-          {summariesHistory.map((summary) => (
-            <button
-              key={summary.id}
-              onClick={() => downloadSummary(summary)}
-              className="file-row"
-              style={{
-                justifyContent: "space-between",
-                cursor: "pointer",
-                textAlign: "left",
-                font: "inherit",
-                color: "var(--text)",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>
-                  {summary.title}
-                </div>
-
-                <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
-                  {summary.instruction || "Generated summary"} ·{" "}
-                  {safeFormatDate(summary.updatedAt || summary.createdAt)}
-                </div>
-              </div>
-
-              <StatusBadge status={summary.status} />
-            </button>
-          ))}
         </div>
       </section>
     </div>

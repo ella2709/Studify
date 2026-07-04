@@ -163,19 +163,19 @@ function ExamPage() {
   }
 
   return (
-    <div className="app-page fade-in" style={{ maxWidth: 980 }}>
-      <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
+    <div className="app-page app-page--full fade-in" style={{ maxWidth: 980 }}>
+      <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem", flexShrink: 0 }}>
         <ChevronLeft />{projectName}
       </Link>
 
-      <div className="page-head">
+      <div className="page-head" style={{ flexShrink: 0 }}>
         <p className="page-eyebrow">Exam Simulator</p>
         <h1 className="page-title">Test your knowledge</h1>
         <p className="page-subtitle">Create an interactive exam based on all materials uploaded to this project.</p>
       </div>
 
       {error && (
-        <div className="alert" style={{ marginBottom: "1.25rem" }}>
+        <div className="alert" style={{ marginBottom: "1.25rem", flexShrink: 0 }}>
           <div>
             <strong style={{ display: "block", marginBottom: "0.15rem" }}>Action needed</strong>
             <span>{error}</span>
@@ -186,7 +186,7 @@ function ExamPage() {
       {/* ── Create + history ── */}
       {!examId && (
         <>
-          <section className="card card-pad" style={{ marginBottom: "1.5rem" }}>
+          <section className="card card-pad" style={{ marginBottom: "1.5rem", flexShrink: 0 }}>
             <h2 className="section-title" style={{ marginBottom: "1.1rem" }}>Create New Exam</h2>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.25rem" }}>
@@ -226,8 +226,17 @@ function ExamPage() {
             </button>
           </section>
 
-          <section className="card card-pad">
-            <h2 className="section-title" style={{ marginBottom: "1rem" }}>Exam History</h2>
+          <section
+            className="card card-pad"
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              minHeight: 0,
+            }}
+          >
+            <h2 className="section-title" style={{ marginBottom: "1rem", flexShrink: 0 }}>Exam History</h2>
 
             {isHistoryLoading && (
               <div style={{ display: "grid", gap: "0.6rem" }}>
@@ -235,26 +244,28 @@ function ExamPage() {
               </div>
             )}
 
-            {!isHistoryLoading && examHistory.length === 0 && (
-              <div className="empty-state">
-                <div className="empty-icon">🧪</div>
-                <h3 className="empty-title">No exams yet</h3>
-                <p className="empty-text">Generate your first exam above to get started.</p>
-              </div>
-            )}
+            <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+              {!isHistoryLoading && examHistory.length === 0 && (
+                <div className="empty-state">
+                  <div className="empty-icon">🧪</div>
+                  <h3 className="empty-title">No exams yet</h3>
+                  <p className="empty-text">Generate your first exam above to get started.</p>
+                </div>
+              )}
 
-            <div style={{ display: "grid", gap: "0.7rem" }}>
-              {examHistory.map((item) => (
-                <button key={item.id} onClick={() => openExam(item)} className="file-row" style={{ justifyContent: "space-between", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--text)" }}>
-                  <div>
-                    <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>{item.title}</div>
-                    <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
-                      {item.numberOfQuestions} questions · {item.language === "he" ? "Hebrew" : "English"} · {formatDate(item.updatedAt || item.createdAt)}
+              <div style={{ display: "grid", gap: "0.7rem" }}>
+                {examHistory.map((item) => (
+                  <button key={item.id} onClick={() => openExam(item)} className="file-row" style={{ justifyContent: "space-between", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--text)" }}>
+                    <div>
+                      <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>{item.title}</div>
+                      <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
+                        {item.numberOfQuestions} questions · {item.language === "he" ? "Hebrew" : "English"} · {formatDate(item.updatedAt || item.createdAt)}
+                      </div>
                     </div>
-                  </div>
-                  <StatusBadge status={item.status} />
-                </button>
-              ))}
+                    <StatusBadge status={item.status} />
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
         </>
@@ -262,7 +273,15 @@ function ExamPage() {
 
       {/* ── Exam taking / review ── */}
       {examId && exam && (
-        <section className="card card-pad" style={{ direction }}>
+        <section
+          className="card card-pad"
+          style={{
+            direction,
+            flex: 1,
+            overflowY: "auto",
+            minHeight: 0,
+          }}
+        >
           <button onClick={backToSimulator} className="btn btn-secondary btn-sm" style={{ marginBottom: "1.25rem" }}>
             ← Back to Exam Simulator
           </button>
