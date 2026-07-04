@@ -26,10 +26,15 @@ function SummarizePage() {
   const summariesQuery = useProjectSummaries(projectId);
   const generateSummaryMutation = useGenerateSummary();
 
-  const summariesHistory = useMemo(
-    () => summariesQuery.data || [],
-    [summariesQuery.data]
-  );
+ const summariesHistory = useMemo(() => {
+  const summaries = summariesQuery.data || [];
+
+  if (!createdSummary?.id) {
+    return summaries;
+  }
+
+  return summaries.filter((summary) => summary.id !== createdSummary.id);
+}, [summariesQuery.data, createdSummary]);
 
   const loading = generateSummaryMutation.isPending;
 
