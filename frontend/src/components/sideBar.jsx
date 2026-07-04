@@ -60,6 +60,17 @@ export function Sidebar({
             <HomeIcon />
           </Link>
 
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={onNavClick}
+              className={`sb-rail-btn${location.pathname.startsWith("/admin") ? " active" : ""}`}
+              title="Admin Panel"
+            >
+              🛠
+            </Link>
+          )}
+
           <button className="sb-rail-btn" onClick={onCreateProject} title="New project" aria-label="New project">
             <PlusIcon />
           </button>
@@ -82,16 +93,7 @@ export function Sidebar({
               </Link>
             );
           })}
-          {isAdmin && (
-            <Link
-              to="/admin"
-              onClick={onNavClick}
-              className={`sb-rail-btn${location.pathname.startsWith("/admin") ? " active" : ""}`}
-              title="Admin Panel"
-            >
-              🛠
-            </Link>
-          )}
+          
         </nav>
 
         <div className="sb-railfoot">
@@ -130,6 +132,16 @@ export function Sidebar({
           active={location.pathname === "/"}
           onClick={onNavClick}
         />
+
+        {isAdmin && (
+          <SidebarNavItem
+            to="/admin"
+            label="Admin Panel"
+            icon={<span>🛠</span>}
+            active={location.pathname.startsWith("/admin")}
+            onClick={onNavClick}
+          />
+        )}
 
         <div className="sb-section">
           <button className="sb-section__btn" onClick={() => setProjectsOpen((prev) => !prev)}>
@@ -175,15 +187,7 @@ export function Sidebar({
               })}
           </div>
         )}
-        {isAdmin && (
-          <SidebarNavItem
-            to="/admin"
-            label="Admin Panel"
-            icon={<span>🛠</span>}
-            active={location.pathname.startsWith("/admin")}
-            onClick={onNavClick}
-          />
-        )}
+        
       </nav>
 
       <div className="sb-footer">

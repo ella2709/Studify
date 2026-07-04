@@ -48,14 +48,36 @@ function ProjectPage() {
         maxWidth: "1200px",
       }}
       >
-      <div className="page-head">
+      <div
+        className="page-head"
+        style={{
+          maxWidth: "820px",
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
         <Link to="/" className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
           <ChevronLeft /> All projects
         </Link>
+
         <p className="page-eyebrow">Project</p>
-        <h1 className="page-title">{projectName}</h1>
-        <p className="page-subtitle">Choose a tool to work with your study materials.</p>
-      </div>
+
+       <h1
+        style={{
+          fontSize: "1.8rem",
+          fontWeight: 700,
+          margin: 0,
+          lineHeight: 1.3,
+          color: "var(--text)",
+        }}
+      >
+        {projectName}
+      </h1>
+
+        <p className="page-subtitle">
+          Choose a tool to work with your study materials.
+        </p>
+    </div>
 
       <div
           style={{

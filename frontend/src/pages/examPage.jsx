@@ -165,7 +165,7 @@ function ExamPage() {
   return (
     <div className="app-page fade-in" style={{ maxWidth: 980 }}>
       <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
-        <ChevronLeft /> Back to {projectName}
+        <ChevronLeft />{projectName}
       </Link>
 
       <div className="page-head">

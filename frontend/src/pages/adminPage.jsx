@@ -89,48 +89,82 @@ export default function AdminPage() {
     }
 
     if (loading) {
-        return <div style={styles.page}>{messages.general.loading}</div>;
+        return (
+            <div className="app-page fade-in">
+                <p style={{ color: "var(--text-muted)" }}>{messages.general.loading}</p>
+            </div>
+        );
     }
 
     if (!isAdmin) {
         return (
-            <div style={styles.page}>
-                <h1 style={styles.title}>{messages.errors.accessDenied}</h1>
-                <p style={styles.subtitle}>{messages.errors.adminOnly}</p>
+            <div className="app-page fade-in">
+                <h1 className="page-title">{messages.errors.accessDenied}</h1>
+                <p className="page-subtitle">{messages.errors.adminOnly}</p>
             </div>
         );
     }
 
     return (
-        <div style={styles.page}>
-            <div style={styles.header}>
+        <div className="app-page fade-in">
+            <header
+                style={{
+                    display: "flex",
+                    alignItems: "flex-end",
+                    justifyContent: "space-between",
+                    gap: "1rem",
+                    flexWrap: "wrap",
+                    marginBottom: "1.5rem",
+                }}
+            >
                 <div>
-                    <h1 style={styles.title}>{messages.pageTitles.admin}</h1>
-                    <p style={styles.subtitle}>{messages.pagePurposes.admin}</p>
+                    <p className="page-eyebrow">Administration</p>
+                    <h1 className="page-title">{messages.pageTitles.admin}</h1>
+                    <p className="page-subtitle">{messages.pagePurposes.admin}</p>
                 </div>
 
-                <button style={styles.refreshButton} onClick={loadUsers}>
+                <button className="btn btn-secondary" onClick={loadUsers}>
                     Refresh
                 </button>
-            </div>
+            </header>
 
-            {error && <div style={styles.error}>{error}</div>}
-            {success && <div style={styles.success}>{success}</div>}
+            {error && (
+                <div className="status-error" style={{ marginBottom: "1rem" }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div className="status-success" style={{ marginBottom: "1rem" }}>
+                    {success}
+                </div>
+            )}
 
-            <div style={styles.card}>
+            <div className="card" style={{ overflow: "auto" }}>
                 {usersLoading ? (
-                    <div style={styles.empty}>{messages.general.loadingUsers}</div>
+                    <div
+                        style={{
+                            padding: "3rem 1.5rem",
+                            textAlign: "center",
+                            color: "var(--text-muted)",
+                        }}
+                    >
+                        {messages.general.loadingUsers}
+                    </div>
                 ) : users.length === 0 ? (
-                    <div style={styles.empty}>{messages.general.noUsers}</div>
+                    <div className="empty-state" style={{ margin: "1.5rem" }}>
+                        <div className="empty-icon">👥</div>
+                        <h3 className="empty-title">No users found</h3>
+                        <p className="empty-text">{messages.general.noUsers}</p>
+                    </div>
                 ) : (
-                    <table style={styles.table}>
+                    <table style={tableStyles.table}>
                         <thead>
                             <tr>
-                                <th style={styles.th}>Name</th>
-                                <th style={styles.th}>Email</th>
-                                <th style={styles.th}>Role</th>
-                                <th style={styles.th}>Status</th>
-                                <th style={styles.th}>Actions</th>
+                                <th style={tableStyles.th}>User</th>
+                                <th style={tableStyles.th}>Email</th>
+                                <th style={tableStyles.th}>Role</th>
+                                <th style={tableStyles.th}>Status</th>
+                                <th style={tableStyles.th}>Actions</th>
                             </tr>
                         </thead>
 
@@ -140,16 +174,34 @@ export default function AdminPage() {
                                 const isDeleted = user.isDeleted || user.status === messages.actions.deleted;
                                 const busy = actionLoadingUid === user.uid;
 
+                                const badgeClass = isDeleted
+                                    ? "badge badge-neutral"
+                                    : isBlocked
+                                        ? "badge"
+                                        : "badge badge-success";
+
+                                const blockedBadgeStyle = isBlocked && !isDeleted
+                                    ? {
+                                        background: "var(--error-bg)",
+                                        color: "var(--error-txt)",
+                                        border: "1px solid var(--error-bdr)",
+                                    }
+                                    : {};
+
                                 return (
-                                    <tr key={user.uid}>
-                                        <td style={styles.td}>
-                                            <div style={styles.name}>{user.name || "No name"}</div>
-                                            <div style={styles.uid}>{user.uid}</div>
+                                    <tr key={user.uid} style={tableStyles.trHover}>
+                                        <td style={tableStyles.td}>
+                                            <div style={{ fontWeight: 700, color: "var(--text)" }}>
+                                                {user.name || "No name"}
+                                            </div>
+                                            <div style={tableStyles.uid}>{user.uid}</div>
                                         </td>
 
-                                        <td style={styles.td}>{user.email || "-"}</td>
+                                        <td style={tableStyles.td}>
+                                            {user.email || "—"}
+                                        </td>
 
-                                        <td style={styles.td}>
+                                        <td style={tableStyles.td}>
                                             <select
                                                 value={user.role || "student"}
                                                 disabled={busy || isDeleted}
@@ -160,33 +212,29 @@ export default function AdminPage() {
                                                         "User role updated successfully"
                                                     )
                                                 }
-                                                style={styles.select}
+                                                className="select-base"
+                                                style={{ width: "auto", padding: "0.38rem 2.2rem 0.38rem 0.65rem", fontSize: "0.82rem" }}
                                             >
                                                 <option value="student">{messages.roles.student}</option>
                                                 <option value="admin">{messages.roles.admin}</option>
                                             </select>
                                         </td>
 
-                                        <td style={styles.td}>
-                                            <span
-                                                style={{
-                                                    ...styles.badge,
-                                                    ...(isDeleted
-                                                        ? styles.deletedBadge
-                                                        : isBlocked
-                                                            ? styles.blockedBadge
-                                                            : styles.activeBadge),
-                                                }}
-                                            >
-                                                {isDeleted ? messages.badges.deleted : isBlocked ? messages.actions.blocked : messages.actions.active}
+                                        <td style={tableStyles.td}>
+                                            <span className={badgeClass} style={blockedBadgeStyle}>
+                                                {isDeleted
+                                                    ? messages.badges.deleted
+                                                    : isBlocked
+                                                        ? messages.actions.blocked
+                                                        : messages.actions.active}
                                             </span>
                                         </td>
 
-                                        <td style={styles.td}>
-                                            <div style={styles.actions}>
+                                        <td style={tableStyles.td}>
+                                            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
                                                 {isBlocked ? (
                                                     <button
-                                                        style={styles.actionButton}
+                                                        className="btn btn-secondary btn-sm"
                                                         disabled={busy || isDeleted}
                                                         onClick={() =>
                                                             openConfirmDialog({
@@ -206,7 +254,7 @@ export default function AdminPage() {
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        style={styles.actionButton}
+                                                        className="btn btn-secondary btn-sm"
                                                         disabled={busy || isDeleted}
                                                         onClick={() =>
                                                             openConfirmDialog({
@@ -227,7 +275,7 @@ export default function AdminPage() {
                                                 )}
 
                                                 <button
-                                                    style={styles.actionButton}
+                                                    className="btn btn-secondary btn-sm"
                                                     disabled={busy || isDeleted}
                                                     onClick={() =>
                                                         openConfirmDialog({
@@ -246,9 +294,8 @@ export default function AdminPage() {
                                                     {messages.actions.resetData}
                                                 </button>
 
-
                                                 <button
-                                                    style={styles.dangerButton}
+                                                    className="btn btn-danger btn-sm"
                                                     disabled={busy}
                                                     onClick={() =>
                                                         openConfirmDialog({
@@ -275,6 +322,7 @@ export default function AdminPage() {
                     </table>
                 )}
             </div>
+
             <ConfirmDialog
                 open={confirmDialog.open}
                 title={confirmDialog.title}
@@ -288,149 +336,40 @@ export default function AdminPage() {
     );
 }
 
-const styles = {
-    page: {
-        width: "100%",
-        minHeight: "100%",
-        padding: "2rem",
-        background:
-            "radial-gradient(circle at top left, rgba(89, 122, 255, 0.08), transparent 35%), #f8fafc",
-    },
-    header: {
-        maxWidth: 1180,
-        margin: "0 auto 1.5rem",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "1rem",
-    },
-    title: {
-        margin: 0,
-        fontSize: "2rem",
-        color: "#0f172a",
-    },
-    subtitle: {
-        margin: "0.35rem 0 0",
-        color: "#64748b",
-    },
-    refreshButton: {
-        border: "1px solid #dbe3ef",
-        background: "#ffffff",
-        borderRadius: "999px",
-        padding: "0.65rem 1rem",
-        cursor: "pointer",
-        fontWeight: 700,
-    },
-    card: {
-        maxWidth: 1180,
-        margin: "0 auto",
-        background: "#ffffff",
-        border: "1px solid #e5eaf2",
-        borderRadius: "1.25rem",
-        boxShadow: "0 20px 50px rgba(15, 23, 42, 0.06)",
-        overflow: "auto",
-    },
+const tableStyles = {
     table: {
         width: "100%",
         borderCollapse: "collapse",
-        minWidth: 980,
+        minWidth: 920,
     },
     th: {
         textAlign: "left",
-        padding: "1rem",
-        fontSize: "0.8rem",
-        color: "#64748b",
-        borderBottom: "1px solid #e5eaf2",
-        background: "#f8fafc",
+        padding: "0.85rem 1.1rem",
+        fontSize: "0.72rem",
+        fontWeight: 700,
+        letterSpacing: "0.07em",
+        textTransform: "uppercase",
+        color: "var(--text-muted)",
+        borderBottom: "1px solid var(--border)",
+        background: "var(--bg-raised)",
+    },
+    trHover: {
+        borderBottom: "1px solid var(--border)",
     },
     td: {
-        padding: "1rem",
-        borderBottom: "1px solid #eef2f7",
+        padding: "0.9rem 1.1rem",
+        borderBottom: "1px solid var(--border)",
         verticalAlign: "middle",
-        color: "#1e293b",
-    },
-    name: {
-        fontWeight: 700,
+        color: "var(--text-2)",
+        fontSize: "0.9rem",
     },
     uid: {
-        marginTop: "0.25rem",
-        fontSize: "0.75rem",
-        color: "#94a3b8",
+        marginTop: "0.2rem",
+        fontSize: "0.72rem",
+        color: "var(--text-muted)",
         maxWidth: 190,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
-    },
-    select: {
-        border: "1px solid #dbe3ef",
-        borderRadius: "0.7rem",
-        padding: "0.5rem 0.65rem",
-        background: "#fff",
-    },
-    badge: {
-        display: "inline-flex",
-        borderRadius: "999px",
-        padding: "0.35rem 0.65rem",
-        fontSize: "0.78rem",
-        fontWeight: 700,
-    },
-    activeBadge: {
-        background: "#dcfce7",
-        color: "#166534",
-    },
-    blockedBadge: {
-        background: "#fee2e2",
-        color: "#991b1b",
-    },
-    deletedBadge: {
-        background: "#e2e8f0",
-        color: "#475569",
-    },
-    actions: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "0.45rem",
-    },
-    actionButton: {
-        border: "1px solid #dbe3ef",
-        background: "#ffffff",
-        borderRadius: "0.65rem",
-        padding: "0.48rem 0.7rem",
-        cursor: "pointer",
-        fontWeight: 650,
-    },
-    deleteButton: {
-        border: "1px solid #fecaca",
-        background: "#fff7f7",
-        color: "#b91c1c",
-        borderRadius: "0.65rem",
-        padding: "0.48rem 0.7rem",
-        cursor: "pointer",
-        fontWeight: 650,
-    },
-    dangerButton: {
-        border: "1px solid #991b1b",
-        background: "#991b1b",
-        color: "#ffffff",
-        borderRadius: "0.65rem",
-        padding: "0.48rem 0.7rem",
-        cursor: "pointer",
-        fontWeight: 650,
-    },
-    empty: {
-        padding: "2rem",
-        color: "#64748b",
-    },
-    error: {
-        maxWidth: 1180,
-        margin: "0 auto 1rem",
-        color: "#b91c1c",
-        fontWeight: 700,
-    },
-    success: {
-        maxWidth: 1180,
-        margin: "0 auto 1rem",
-        color: "#166534",
-        fontWeight: 700,
     },
 };
