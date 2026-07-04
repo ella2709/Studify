@@ -1,7 +1,8 @@
-const examsService = require("../services/examsService");
+const examsBL = require("../BLs/examBL");
 
 function getProjectId(req) {
-  const projectId = req.body?.projectId || req.query?.projectId || req.params?.projectId;
+  const projectId =
+    req.body?.projectId || req.query?.projectId || req.params?.projectId;
 
   if (!projectId || !projectId.trim()) {
     return null;
@@ -27,7 +28,7 @@ async function generateExam(req, res) {
       return res.status(400).json({ error: "Missing projectId" });
     }
 
-    const exam = await examsService.generateExam({
+    const exam = await examsBL.generateExam({
       ...req.body,
       projectId,
       userId,
@@ -36,7 +37,10 @@ async function generateExam(req, res) {
     res.status(201).json(exam);
   } catch (error) {
     console.error("Generate exam error:", error);
-    res.status(500).json({ error: error.message });
+
+    res.status(500).json({
+      error: error?.message || "Failed to generate exam",
+    });
   }
 }
 
@@ -53,10 +57,13 @@ async function getProjectExams(req, res) {
       return res.status(400).json({ error: "Missing projectId" });
     }
 
-    const exams = await examsService.getProjectExams(projectId, userId);
+    const exams = await examsBL.getProjectExams(projectId, userId);
+
     res.json({ exams });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error?.message || "Failed to get exams",
+    });
   }
 }
 
@@ -68,10 +75,13 @@ async function getExamById(req, res) {
       return res.status(401).json({ error: "Missing userId" });
     }
 
-    const exam = await examsService.getExamById(req.params.examId, userId);
+    const exam = await examsBL.getExamById(req.params.examId, userId);
+
     res.json(exam);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(404).json({
+      error: error?.message || "Exam not found",
+    });
   }
 }
 
@@ -83,10 +93,13 @@ async function startExam(req, res) {
       return res.status(401).json({ error: "Missing userId" });
     }
 
-    const attempt = await examsService.startExam(req.params.examId, userId);
+    const attempt = await examsBL.startExam(req.params.examId, userId);
+
     res.status(201).json(attempt);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error?.message || "Failed to start exam",
+    });
   }
 }
 
@@ -98,14 +111,16 @@ async function submitExam(req, res) {
       return res.status(401).json({ error: "Missing userId" });
     }
 
-    const result = await examsService.submitExam(req.params.examId, {
+    const result = await examsBL.submitExam(req.params.examId, {
       ...req.body,
       userId,
     });
 
     res.json(result);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error?.message || "Failed to submit exam",
+    });
   }
 }
 
@@ -117,7 +132,7 @@ async function getAttemptById(req, res) {
       return res.status(401).json({ error: "Missing userId" });
     }
 
-    const attempt = await examsService.getAttemptById(
+    const attempt = await examsBL.getAttemptById(
       req.params.examId,
       req.params.attemptId,
       userId
@@ -125,7 +140,9 @@ async function getAttemptById(req, res) {
 
     res.json(attempt);
   } catch (error) {
-    res.status(404).json({ error: error.message });
+    res.status(404).json({
+      error: error?.message || "Attempt not found",
+    });
   }
 }
 
@@ -137,39 +154,36 @@ async function exportExamTxt(req, res) {
       return res.status(401).json({ error: "Missing userId" });
     }
 
-    const txt = await examsService.exportExamTxt(req.params.examId, userId);
+    const txt = await examsBL.exportExamTxt(req.params.examId, userId);
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader("Content-Disposition", "attachment; filename=exam.txt");
     res.send(txt);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error?.message || "Failed to export exam",
+    });
   }
 }
 
 async function saveAttemptAnswers(req, res) {
   try {
-    const userId = req.user?.uid;
+    const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({
-        error: "Missing userId",
-      });
+      return res.status(401).json({ error: "Missing userId" });
     }
 
-    const attempt = await examsService.saveAttemptAnswers(
-      req.params.examId,
-      {
-        attemptId: req.params.attemptId,
-        userId,
-        answers: req.body.answers || {},
-      }
-    );
+    const attempt = await examsBL.saveAttemptAnswers(req.params.examId, {
+      attemptId: req.params.attemptId,
+      userId,
+      answers: req.body.answers || {},
+    });
 
     res.json(attempt);
   } catch (error) {
     res.status(500).json({
-      error: error.message,
+      error: error?.message || "Failed to save answers",
     });
   }
 }

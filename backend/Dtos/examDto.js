@@ -1,12 +1,4 @@
-function formatDate(value) {
-  if (!value) return null;
-
-  if (typeof value.toDate === "function") {
-    return value.toDate().toISOString();
-  }
-
-  return value;
-}
+const { formatFirestoreDate } = require("../utils/dateUtils");
 
 function examDto(doc, latestAttempt = null) {
   const data = doc.data();
@@ -23,8 +15,8 @@ function examDto(doc, latestAttempt = null) {
     questions: data.questions || [],
     status: latestAttempt?.status || data.status || "not_started",
     latestAttempt,
-    createdAt: formatDate(data.createdAt),
-    updatedAt: formatDate(data.updatedAt || data.createdAt),
+    createdAt: formatFirestoreDate(data.createdAt),
+    updatedAt: formatFirestoreDate(data.updatedAt || data.createdAt),
   };
 }
 
@@ -37,13 +29,13 @@ function examAttemptDto(doc) {
     userId: data.userId,
     status: data.status || "in_progress",
     answers: data.answers || {},
-    startedAt: formatDate(data.startedAt),
-    submittedAt: formatDate(data.submittedAt),
+    startedAt: formatFirestoreDate(data.startedAt),
+    submittedAt: formatFirestoreDate(data.submittedAt),
     duration: data.duration || null,
     grade: data.grade ?? null,
     feedback: data.feedback || null,
-    createdAt: formatDate(data.createdAt),
-    updatedAt: formatDate(data.updatedAt || data.createdAt),
+    createdAt: formatFirestoreDate(data.createdAt),
+    updatedAt: formatFirestoreDate(data.updatedAt || data.createdAt),
   };
 }
 

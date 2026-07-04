@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sidebar } from "./sideBar";
-import { useRecentChatsByProject } from "../services/conversationService";
+import { useRecentChatsByProject } from "../services/questionService";
 
 const SIDEBAR_W = 268;
 const SIDEBAR_W_COLLAPSED = 76;

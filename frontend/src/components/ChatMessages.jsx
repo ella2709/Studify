@@ -1,4 +1,4 @@
-import AiTextBlock from "./AiTextBlock";
+import AiTextBlock from "./aiTextBlock";
 
 function SourcesList({ sources = [] }) {
   if (!sources.length) return null;

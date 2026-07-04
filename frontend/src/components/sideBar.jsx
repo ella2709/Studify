@@ -3,6 +3,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../authentication/firebaseAuth";
 import { HomeIcon, PlusIcon, PanelIcon } from "./iconsAndButtons";
+import { useAuth } from "../authentication/authContext";
+import { Chevron, LogoutIcon } from "./iconsAndButtons";
+
 
 function projectInitial(name = "") {
   const trimmed = name.trim();
@@ -21,6 +24,7 @@ export function Sidebar({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [projectsOpen, setProjectsOpen] = useState(true);
 
   async function handleLogout() {
@@ -78,6 +82,16 @@ export function Sidebar({
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={onNavClick}
+              className={`sb-rail-btn${location.pathname.startsWith("/admin") ? " active" : ""}`}
+              title="Admin Panel"
+            >
+              🛠
+            </Link>
+          )}
         </nav>
 
         <div className="sb-railfoot">
@@ -161,6 +175,15 @@ export function Sidebar({
               })}
           </div>
         )}
+        {isAdmin && (
+          <SidebarNavItem
+            to="/admin"
+            label="Admin Panel"
+            icon={<span>🛠</span>}
+            active={location.pathname.startsWith("/admin")}
+            onClick={onNavClick}
+          />
+        )}
       </nav>
 
       <div className="sb-footer">
@@ -207,24 +230,3 @@ function SidebarProjectItem({ to, name, isActive, onClick }) {
   );
 }
 
-function Chevron({ open }) {
-  return (
-    <span style={{ display: "inline-flex", transform: open ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.18s ease" }}>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 9l6 6 6-6" />
-      </svg>
-    </span>
-  );
-}
-
-function LogoutIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  );
-}

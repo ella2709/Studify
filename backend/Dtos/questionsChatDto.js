@@ -1,4 +1,6 @@
-class ChatDto {
+const { formatFirestoreDate } = require("../utils/dateUtils");
+
+class QuestionChatDto {
   constructor({ id, title, createdAt, updatedAt }) {
     this.id = id;
     this.title = title;
@@ -7,7 +9,7 @@ class ChatDto {
   }
 }
 
-class MessageDto {
+class QuestionMessageDto {
   constructor({ id, role, type, content, sources, file, createdAt }) {
     this.id = id;
     this.role = role;
@@ -19,39 +21,28 @@ class MessageDto {
   }
 }
 
-function formatDate(value) {
-  if (!value) return null;
-
-  if (typeof value.toDate === "function") {
-    return value.toDate().toISOString();
-  }
-
-  return value;
-}
-
-function toChatDto(chat) {
-  return new ChatDto({
+function questionChatDto(chat) {
+  return new QuestionChatDto({
     id: chat.id,
     title: chat.title,
-    createdAt: formatDate(chat.createdAt),
-    updatedAt: formatDate(chat.updatedAt),
+    createdAt: formatFirestoreDate(chat.createdAt),
+    updatedAt: formatFirestoreDate(chat.updatedAt),
   });
 }
 
-function toMessageDto(message) {
-  return new MessageDto({
+function questionMessageDto(message) {
+  return new QuestionMessageDto({
     id: message.id,
     role: message.role,
     type: message.type || "text",
     content: message.content || "",
     sources: message.sources || [],
     file: message.file || null,
-    createdAt: formatDate(message.createdAt),
+    createdAt: formatFirestoreDate(message.createdAt),
   });
 }
 
 module.exports = {
-  toChatDto,
-  toMessageDto,
+  questionChatDto,
+  questionMessageDto,
 };
-

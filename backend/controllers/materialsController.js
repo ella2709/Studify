@@ -1,91 +1,46 @@
-const crypto = require("crypto");
-const materialsRepository = require("../services/materialService");
-const { normalizeText, splitTextIntoChunks } = require("../utils/textUtils");
-const { generateEmbedding } = require("../helpers/embeddingHelper");
-const { extractTextFromFile } = require("../helpers/extractTextFromFile");
+const materialBL = require("../BLs/materialBL");
 
 function getProjectId(req) {
   const projectId =
     req.body?.projectId || req.query?.projectId || req.params?.projectId;
 
-  if (!projectId) {
-    throw new Error("Missing projectId");
+  if (!projectId || !projectId.trim()) {
+    return null;
   }
 
-  return projectId;
+  return projectId.trim();
 }
 
 function getUserId(req) {
-  const userId = req.user?.uid;
-
-  if (!userId) {
-    throw new Error("Missing userId");
-  }
-
-  return userId;
+  return req.user?.uid || null;
 }
 
 async function uploadMaterials(req, res) {
   try {
-    const files = req.files;
-    const projectId = getProjectId(req);
     const userId = getUserId(req);
+    const projectId = getProjectId(req);
 
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No files were uploaded" });
+    if (!userId) {
+      return res.status(401).json({ error: "Missing userId" });
     }
 
-    const savedFiles = [];
-
-    for (const file of files) {
-      const extractedText = await extractTextFromFile(file);
-      const normalizedText = normalizeText(extractedText);
-      const chunks = splitTextIntoChunks(normalizedText);
-
-      if (chunks.length === 0) {
-        return res.status(400).json({
-          error: `No readable text was found in file: ${file.originalname}`,
-        });
-      }
-
-      const chunkObjects = [];
-
-      for (let i = 0; i < chunks.length; i++) {
-        const chunkText = chunks[i];
-        const embedding = await generateEmbedding(chunkText);
-
-        chunkObjects.push({
-          id: crypto.randomUUID(),
-          chunkIndex: i,
-          text: chunkText,
-          embedding,
-        });
-      }
-
-      const material = {
-        id: crypto.randomUUID(),
-        originalName: file.originalname,
-        mimeType: file.mimetype,
-        size: file.size,
-        chunksCount: chunkObjects.length,
-      };
-
-      const savedMaterial = await materialsRepository.addMaterialWithChunks(
-        material,
-        chunkObjects,
-        projectId,
-        userId
-      );
-
-      savedFiles.push(savedMaterial);
+    if (!projectId) {
+      return res.status(400).json({ error: "Missing projectId" });
     }
+
+    const files = await materialBL.uploadMaterials({
+      files: req.files,
+      projectId,
+      userId,
+    });
 
     res.status(201).json({
       message: "Files uploaded successfully",
-      files: savedFiles,
+      files,
     });
   } catch (err) {
     console.error("UPLOAD ERROR:", err);
+
     res.status(500).json({
       error: err?.message || "File upload failed",
     });
@@ -94,17 +49,26 @@ async function uploadMaterials(req, res) {
 
 async function getMaterials(req, res) {
   try {
-    const projectId = getProjectId(req);
     const userId = getUserId(req);
+    const projectId = getProjectId(req);
 
-    const files = await materialsRepository.getAllMaterialsMetadata(
+    if (!userId) {
+      return res.status(401).json({ error: "Missing userId" });
+    }
+
+    if (!projectId) {
+      return res.status(400).json({ error: "Missing projectId" });
+    }
+
+    const files = await materialBL.getMaterials({
       projectId,
-      userId
-    );
+      userId,
+    });
 
     res.json({ files });
   } catch (err) {
     console.error("GET MATERIALS ERROR:", err);
+
     res.status(500).json({
       error: err?.message || "Failed to get materials",
     });
@@ -113,22 +77,27 @@ async function getMaterials(req, res) {
 
 async function getMaterialById(req, res) {
   try {
-    const projectId = getProjectId(req);
     const userId = getUserId(req);
+    const projectId = getProjectId(req);
 
-    const material = await materialsRepository.getMaterialById(
-      req.params.id,
-      projectId,
-      userId
-    );
-
-    if (!material) {
-      return res.status(404).json({ error: "Material not found" });
+    if (!userId) {
+      return res.status(401).json({ error: "Missing userId" });
     }
+
+    if (!projectId) {
+      return res.status(400).json({ error: "Missing projectId" });
+    }
+
+    const material = await materialBL.getMaterialById({
+      id: req.params.id,
+      projectId,
+      userId,
+    });
 
     res.json({ material });
   } catch (err) {
     console.error("GET MATERIAL BY ID ERROR:", err);
+
     res.status(500).json({
       error: err?.message || "Failed to get material",
     });
@@ -137,15 +106,30 @@ async function getMaterialById(req, res) {
 
 async function removeMaterial(req, res) {
   try {
-    const projectId = getProjectId(req);
     const userId = getUserId(req);
-    const { id } = req.params;
+    const projectId = getProjectId(req);
 
-    await materialsRepository.removeMaterial(id, projectId, userId);
+    if (!userId) {
+      return res.status(401).json({ error: "Missing userId" });
+    }
 
-    res.json({ message: "File deleted successfully", id });
+    if (!projectId) {
+      return res.status(400).json({ error: "Missing projectId" });
+    }
+
+    await materialBL.removeMaterial({
+      id: req.params.id,
+      projectId,
+      userId,
+    });
+
+    res.json({
+      message: "File deleted successfully",
+      id: req.params.id,
+    });
   } catch (err) {
     console.error("REMOVE MATERIAL ERROR:", err);
+
     res.status(500).json({
       error: err?.message || "Failed to delete material",
     });

@@ -1,7 +1,11 @@
 import { createPortal } from "react-dom";
 
-export function CreateProjectDialog({
+export function ProjectActionsDialog({
   open,
+  title = "Create new project",
+  description = "Give your study project a clear name.",
+  submitText = "Create project",
+  submittingText = "Creating...",
   name,
   onNameChange,
   onSubmit,
@@ -37,10 +41,9 @@ export function CreateProjectDialog({
           }}
         >
           <div>
-            <h2 className="modal-title">Create new project</h2>
-
+            <h2 className="modal-title">{title}</h2>
             <p className="modal-text" style={{ margin: "0.3rem 0 0" }}>
-              Give your study project a clear name.
+              {description}
             </p>
           </div>
 
@@ -89,8 +92,7 @@ export function CreateProjectDialog({
             disabled={creating || !String(name || "").trim()}
             className="btn btn-primary"
           >
-            {creating ? "Creating..." : "Create project"}
-          </button>
+            {creating ? submittingText : submitText}          </button>
         </div>
       </form>
     </div>,

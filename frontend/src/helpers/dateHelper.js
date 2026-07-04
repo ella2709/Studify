@@ -10,6 +10,7 @@ export function safeFormatDate(value) {
     return null;
   }
 
+
   if (value instanceof Date) {
     return isNaN(value.getTime()) ? null : value.toLocaleDateString();
   }

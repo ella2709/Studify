@@ -74,3 +74,27 @@ export const useCreateProject = () => {
   });
 };
 
+export function useRenameProject() {
+  return useMutation({
+    mutationFn: async ({ projectId, name }) => {
+      const headers = await getAuthHeaders();
+
+      const response = await fetch(API.RENAME_PROJECT(projectId), {
+        method: "PATCH",
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Failed to rename project");
+      }
+
+      return data.project;
+    },
+  });
+}

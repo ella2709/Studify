@@ -6,6 +6,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { getAuthErrorMessage } from "../authentication/authErrors.js";
 import AuthShell from "../components/authShell.jsx";
+import { createUser } from "../services/userService";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -34,8 +35,16 @@ export default function RegisterPage() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       await updateProfile(userCredential.user, { displayName: name });
+
+      await createUser(name);
+
       navigate("/");
     } catch (err) {
       setError(getAuthErrorMessage(err.code));

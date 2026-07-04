@@ -50,6 +50,7 @@ function ExamPage() {
   const direction = isHebrew ? "rtl" : "ltr";
 
   const examHistory = useMemo(() => examsQuery.data || [], [examsQuery.data]);
+  const isHistoryLoading = examsQuery.isLoading && !examsQuery.data;
 
   useEffect(() => {
     if (!selectedExamQuery.data) return;
@@ -228,13 +229,13 @@ function ExamPage() {
           <section className="card card-pad">
             <h2 className="section-title" style={{ marginBottom: "1rem" }}>Exam History</h2>
 
-            {examsQuery.isLoading && (
+            {isHistoryLoading && (
               <div style={{ display: "grid", gap: "0.6rem" }}>
                 {[1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 64 }} />)}
               </div>
             )}
 
-            {!examsQuery.isLoading && examHistory.length === 0 && (
+            {!isHistoryLoading && examHistory.length === 0 && (
               <div className="empty-state">
                 <div className="empty-icon">🧪</div>
                 <h3 className="empty-title">No exams yet</h3>

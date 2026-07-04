@@ -6,7 +6,7 @@ import { AttachmentIcon } from "../components/iconsAndButtons";
 import { getMaterials, uploadMaterials, deleteMaterial } from "../services/materialService";
 import { formatUploadDate } from "../helpers/dateHelper";
 import { formatFileSize, getFileBadge } from "../helpers/fileHelper";
-import ConfirmDialog from "../components/ConfirmDialog";
+import ConfirmDialog from "../components/confirmDialog";
 
 function projectNameFromId(projectId) {
   return projectId
@@ -48,7 +48,20 @@ function UploadMaterialPage() {
 
   function handleFileChange(event) {
     const filesArray = Array.from(event.target.files || []);
-    setSelectedFiles(filesArray);
+
+    setSelectedFiles((prev) => {
+      const existingKeys = new Set(
+        prev.map((file) => `${file.name}-${file.size}-${file.lastModified}`)
+      );
+
+      const newFiles = filesArray.filter(
+        (file) => !existingKeys.has(`${file.name}-${file.size}-${file.lastModified}`)
+      );
+
+      return [...prev, ...newFiles];
+    });
+
+    event.target.value = "";
     setStatus({ type: "", text: "" });
   }
 
@@ -98,12 +111,12 @@ function UploadMaterialPage() {
 
   return (
     <div
-        className="app-page fade-in"
-        style={{
-          maxWidth: 940,
-          paddingTop: "1rem",
-          paddingBottom: 0,
-        }}
+      className="app-page fade-in"
+      style={{
+        maxWidth: 940,
+        paddingTop: "1rem",
+        paddingBottom: 0,
+      }}
     >
       <div className="page-head">
         <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem" }}>

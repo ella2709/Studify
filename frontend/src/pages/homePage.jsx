@@ -1,14 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PlusIcon, SearchIcon } from "../components/iconsAndButtons";
 import { ProjectCard } from "../components/projectCard";
-import { CreateProjectDialog } from "../components/createProjectDialog";
-import ConfirmDialog from "../components/ConfirmDialog";
+import { ProjectActionsDialog } from "../components/projectActionsDialog";
+import ConfirmDialog from "../components/confirmDialog";
 import messages from "../messages";
 import { auth } from "../authentication/firebaseAuth";
-import {
-  useCreateProject,
-  useDeleteProject,
-} from "../services/projectService";
+import { useCreateProject, useDeleteProject, useRenameProject } from "../services/projectService";
 
 function HomePage({
   projects = [],
@@ -16,6 +14,10 @@ function HomePage({
   projectsError,
   onRefresh,
 }) {
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const userName = auth.currentUser?.displayName;
 
   const createProjectMutation = useCreateProject();
@@ -28,12 +30,18 @@ function HomePage({
   const [newProjectName, setNewProjectName] = useState("");
   const [createError, setCreateError] = useState("");
 
+  const renameProjectMutation = useRenameProject();
+
+  const [projectToEdit, setProjectToEdit] = useState(null);
+  const [editProjectName, setEditProjectName] = useState("");
+  const [renameError, setRenameError] = useState("");
+
   const query = searchQuery.trim().toLowerCase();
 
   const visibleProjects = query
     ? projects.filter((project) =>
-        (project.name || "").toLowerCase().includes(query)
-      )
+      (project.name || "").toLowerCase().includes(query)
+    )
     : projects;
 
   const openCreateDialog = () => {
@@ -41,6 +49,17 @@ function HomePage({
     setNewProjectName("");
     setCreateDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (location.state?.openCreateProjectDialog) {
+      openCreateDialog();
+
+      navigate(location.pathname, {
+        replace: true,
+        state: {},
+      });
+    }
+  }, [location.state, navigate]);
 
   const closeCreateDialog = () => {
     if (createProjectMutation.isPending) return;
@@ -82,6 +101,45 @@ function HomePage({
       onRefresh?.();
     } catch (error) {
       console.error("Failed to delete project:", error);
+    }
+  };
+
+  const openRenameDialog = (project) => {
+    setProjectToEdit(project);
+    setEditProjectName(project.name || "");
+    setRenameError("");
+  };
+
+  const closeRenameDialog = () => {
+    if (renameProjectMutation.isPending) return;
+
+    setProjectToEdit(null);
+    setEditProjectName("");
+    setRenameError("");
+  };
+
+  const handleRenameProject = async () => {
+    const trimmedName = editProjectName.trim();
+
+    if (!trimmedName) {
+      setRenameError("Project name is required.");
+      return;
+    }
+
+    try {
+      setRenameError("");
+
+      await renameProjectMutation.mutateAsync({
+        projectId: projectToEdit.id,
+        name: trimmedName,
+      });
+
+      setProjectToEdit(null);
+      setEditProjectName("");
+      onRefresh?.();
+    } catch (error) {
+      console.error("Failed to update project:", error);
+      setRenameError(error?.message || "Failed to update project.");
     }
   };
 
@@ -191,13 +249,14 @@ function HomePage({
                 key={project.id}
                 project={project}
                 onDeleteClick={setProjectToDelete}
+                onEditClick={openRenameDialog}
               />
             ))}
           </div>
         )}
       </section>
 
-      <CreateProjectDialog
+      <ProjectActionsDialog
         open={createDialogOpen}
         name={newProjectName}
         onNameChange={setNewProjectName}
@@ -207,12 +266,25 @@ function HomePage({
         error={createError}
       />
 
+      <ProjectActionsDialog
+        open={!!projectToEdit}
+        title="Rename project"
+        description="Choose a new name for your study project."
+        submitText="Save changes"
+        submittingText="Saving..."
+        name={editProjectName}
+        onNameChange={setEditProjectName}
+        onSubmit={handleRenameProject}
+        onClose={closeRenameDialog}
+        creating={renameProjectMutation.isPending}
+        error={renameError}
+      />
+
       <ConfirmDialog
         open={!!projectToDelete}
         title="Delete project?"
-        message={`Are you sure you want to delete "${
-          projectToDelete?.name || "Untitled"
-        }"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${projectToDelete?.name || "Untitled"
+          }"? This action cannot be undone.`}
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleDeleteProject}

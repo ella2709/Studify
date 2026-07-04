@@ -1,16 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import {
-  askAi,
-  createAskChat,
-  useAskChats,
-  getAskChatMessages,
-  deleteAskChat,
-} from "../services/conversationService.js";
+import { askQuestion, createQuestionChat, useQuestionChats, getQuestionChatMessages, deleteQuestionChat } from "../services/questionService.js";
 import messages from "../messages.js";
 import ChatMessages from "../components/chatMessages.jsx";
-import ConfirmDialog from "../components/ConfirmDialog.jsx";
+import ConfirmDialog from "../components/confirmDialog.jsx";
 import CreateChatDialog from "../components/createChatDialog.jsx";
+import { ChevronLeft } from "../components/iconsAndButtons.jsx";
 
 function projectNameFromId(projectId) {
   return projectId
@@ -26,7 +21,7 @@ function QuestionsPage() {
 
   const [question, setQuestion] = useState("");
   const { data: chatsData, isLoading: loadingChats, refetch: refetchChats } =
-    useAskChats(projectId);
+    useQuestionChats(projectId);
 
   const chats = chatsData?.chats || [];
 
@@ -60,7 +55,7 @@ function QuestionsPage() {
     }
 
     try {
-      const data = await createAskChat(title.trim(), projectId);
+      const data = await createQuestionChat(title.trim(), projectId);
       setSelectedChat(data.chat);
       setChatMessages([]);
       setIsCreateChatDialogOpen(false);
@@ -77,7 +72,7 @@ function QuestionsPage() {
       setSelectedChat(chat);
       setLoading(true);
 
-      const data = await getAskChatMessages(chat.id, projectId);
+      const data = await getQuestionChatMessages(chat.id, projectId);
       setChatMessages(data.messages || []);
     } catch (err) {
       setError(err.message || "Failed to load chat messages");
@@ -99,15 +94,22 @@ function QuestionsPage() {
       return;
     }
 
-    const userMessage = { role: "user", content: question };
+    const currentQuestion = question.trim();
+    const userMessage = { role: "user", content: currentQuestion };
+
     setChatMessages((prev) => [...prev, userMessage]);
+    setQuestion("");
 
     try {
       setLoading(true);
 
-      const result = await askAi(selectedChat.id, question, projectId);
+      const result = await askQuestion(
+        selectedChat.id,
+        currentQuestion,
+        projectId
+      );
+
       setChatMessages((prev) => [...prev, result.message]);
-      setQuestion("");
 
       await refetchChats();
     } catch (err) {
@@ -121,7 +123,7 @@ function QuestionsPage() {
     if (!chatToDelete) return;
 
     try {
-      await deleteAskChat(chatToDelete.id, projectId);
+      await deleteQuestionChat(chatToDelete.id, projectId);
 
       if (selectedChat?.id === chatToDelete.id) {
         setSelectedChat(null);
@@ -225,7 +227,10 @@ function QuestionsPage() {
                   <ChatMessages messages={chatMessages} />
 
                   {loading && (
-                    <div className="bubble-row ai" style={{ marginTop: "0.9rem" }}>
+                    <div
+                      className="bubble-row ai"
+                      style={{ marginTop: "0.9rem" }}
+                    >
                       <div className="bubble bubble-ai">
                         <span className="typing">
                           <span />
@@ -275,11 +280,23 @@ function QuestionsPage() {
 
         <aside className="chat-aside">
           <div style={{ flexShrink: 0, marginBottom: "0.9rem" }}>
-            <h3 style={{ fontSize: "0.95rem", fontWeight: 750, margin: "0 0 0.2rem" }}>
+            <h3
+              style={{
+                fontSize: "0.95rem",
+                fontWeight: 750,
+                margin: "0 0 0.2rem",
+              }}
+            >
               Question Chats
             </h3>
 
-            <p style={{ fontSize: "0.76rem", color: "var(--text-muted)", margin: 0 }}>
+            <p
+              style={{
+                fontSize: "0.76rem",
+                color: "var(--text-muted)",
+                margin: 0,
+              }}
+            >
               Create or continue chats.
             </p>
           </div>
@@ -325,7 +342,9 @@ function QuestionsPage() {
             {chats.map((chat) => (
               <div
                 key={chat.id}
-                className={`chat-item${selectedChat?.id === chat.id ? " active" : ""}`}
+                className={`chat-item${
+                  selectedChat?.id === chat.id ? " active" : ""
+                }`}
               >
                 <button
                   className="chat-item__label"
@@ -375,21 +394,6 @@ function QuestionsPage() {
   );
 }
 
-function ChevronLeft() {
-  return (
-    <svg
-      width="13"
-      height="13"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
+
 
 export default QuestionsPage;

@@ -1,4 +1,4 @@
-export function formatFirestoreDate(value) {
+function formatFirestoreDate(value) {
   if (!value) return null;
 
   if (typeof value.toDate === "function") {

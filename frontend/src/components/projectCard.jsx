@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { TrashIcon } from "./IconsAndButtons";
+import { TrashIcon, EditIcon } from "./iconsAndButtons";
 import { safeFormatDate } from "../helpers/dateHelper";
 
-export function ProjectCard({ project, onDeleteClick }) {
+export function ProjectCard({ project, onDeleteClick, onEditClick }) {
   const name = project.name || "Untitled";
   const filesCount = project.filesCount ?? project.files;
   const chatsCount = project.chatsCount ?? project.chats;
@@ -12,6 +12,23 @@ export function ProjectCard({ project, onDeleteClick }) {
     e.preventDefault();
     e.stopPropagation();
     onDeleteClick?.(project);
+  };
+
+  const handleEditClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEditClick?.(project);
+  };
+
+  const iconButtonStyle = {
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: "0.25rem",
+    color: "var(--text-muted)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   };
 
   return (
@@ -29,24 +46,27 @@ export function ProjectCard({ project, onDeleteClick }) {
       >
         <div className="project-card__icon">📚</div>
 
-        <button
-          type="button"
-          onClick={handleDeleteClick}
-          aria-label="Delete project"
-          title="Delete project"
-          style={{
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            padding: "0.25rem",
-            color: "var(--text-muted)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <TrashIcon />
-        </button>
+        <div style={{ display: "flex", gap: "0.35rem" }}>
+          <button
+            type="button"
+            onClick={handleEditClick}
+            aria-label="Rename project"
+            title="Rename"
+            style={iconButtonStyle}
+          >
+            <EditIcon />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDeleteClick}
+            aria-label="Delete project"
+            title="Delete"
+            style={iconButtonStyle}
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </div>
 
       <h3

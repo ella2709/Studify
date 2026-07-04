@@ -18,7 +18,7 @@ function getMaterialsCollection(userId, projectId) {
     .collection("materials");
 }
 
-  async function addMaterialWithChunks(material, chunks, projectId, userId) {
+async function addMaterialWithChunks(material, chunks, projectId, userId) {
   const materialRef = getMaterialsCollection(userId, projectId).doc(material.id);
 
   await materialRef.set({
@@ -51,6 +51,7 @@ function getMaterialsCollection(userId, projectId) {
   }
 
   const createdDoc = await materialRef.get();
+
   return toMaterialDto(createdDoc);
 }
 
@@ -112,9 +113,13 @@ async function getAllMaterialsMetadata(projectId, userId) {
 
 async function removeMaterial(id, projectId, userId) {
   const materialRef = getMaterialsCollection(userId, projectId).doc(id);
+  const materialDoc = await materialRef.get();
+
+  if (!materialDoc.exists) {
+    throw new Error("Material not found");
+  }
 
   const chunksSnapshot = await materialRef.collection("chunks").get();
-
   const CHUNKS_PER_BATCH = 5;
 
   for (let i = 0; i < chunksSnapshot.docs.length; i += CHUNKS_PER_BATCH) {
