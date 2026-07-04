@@ -91,21 +91,18 @@ function SummarizePage() {
         to={`/project/${projectId}`}
         state={{ projectName }}
         className="breadcrumb"
-        style={{ marginBottom: "0.9rem", flexShrink: 0 }}
+        style={{ marginBottom: "0.5rem", flexShrink: 0 }}
       >
         <ChevronLeft />{projectName}
       </Link>
 
-      <div className="page-head" style={{ flexShrink: 0 }}>
+      <div className="page-head" style={{ flexShrink: 0, marginBottom: "0.6rem" }}>
         <p className="page-eyebrow">Summary Generator</p>
         <h1 className="page-title">Summarize your materials</h1>
-        <p className="page-subtitle">
-          Get a focused summary file based on your uploaded study materials.
-        </p>
       </div>
 
       {error && (
-        <div className="alert" style={{ marginBottom: "1.25rem", flexShrink: 0 }}>
+        <div className="alert" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
           <div>
             <strong style={{ display: "block", marginBottom: "0.15rem" }}>
               Action needed
@@ -115,19 +112,19 @@ function SummarizePage() {
         </div>
       )}
 
-      <section className="card card-pad" style={{ marginBottom: "1.5rem", flexShrink: 0 }}>
-        <h3 className="section-title" style={{ marginBottom: "0.6rem" }}>
+      <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
+        <h3 className="section-title" style={{ marginBottom: "0.5rem" }}>
           What would you like to summarize?
         </h3>
 
-        <div className="field" style={{ marginBottom: "0.6rem" }}>
+        <div className="field" style={{ marginBottom: "0.5rem" }}>
           <textarea
             value={instruction}
             onChange={(e) => setInstruction(e.target.value)}
             placeholder="For example: summarize the main ideas from chapter 3..."
             className="input-base"
             style={{
-              minHeight: 100,
+              minHeight: 64,
               resize: "vertical",
               lineHeight: 1.65,
             }}
@@ -150,7 +147,7 @@ function SummarizePage() {
       </section>
 
       {createdSummary && (
-        <section className="card card-pad" style={{ marginBottom: "1.5rem", flexShrink: 0 }}>
+        <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
           <h2 className="section-title" style={{ marginBottom: "1rem" }}>
             Generated Summary
           </h2>
