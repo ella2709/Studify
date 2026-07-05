@@ -734,20 +734,20 @@ textarea.input-base { resize: vertical; min-height: 96px; }
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 1rem 0.7rem 1rem 1.1rem;
+  padding: 1.1rem 0.7rem 1.1rem 1.1rem;
   border-bottom: 1px solid var(--sidebar-border);
   flex-shrink: 0;
 }
 .sb-brand {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.9rem;
   text-decoration: none;
   flex: 1;
   min-width: 0;
 }
 .sb-collapse-btn {
-  width: 34px; height: 34px;
+  width: 36px; height: 36px;
   flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
   border: none;
@@ -765,15 +765,15 @@ textarea.input-base { resize: vertical; min-height: 96px; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   width: 100%;
-  padding: 0.85rem 0;
+  padding: 0.95rem 0;
   border-bottom: 1px solid var(--sidebar-border);
   flex-shrink: 0;
 }
 .sb-rail-logo { display: inline-flex; }
 .sb-rail-logo img {
-  width: 38px; height: 38px;
+  width: 44px; height: 44px;
   object-fit: contain;
   border-radius: var(--r-sm);
   background: #fff;
@@ -831,15 +831,15 @@ textarea.input-base { resize: vertical; min-height: 96px; }
 .sb-rail-proj:hover { background-color: var(--sidebar-hover); color: var(--sidebar-text); }
 .sb-rail-proj.active { background-color: var(--sidebar-active); color: var(--sidebar-active-text); }
 .sb-brand__logo {
-  width: 42px; height: 42px;
+  width: 62px; height: 62px;
   object-fit: contain;
   border-radius: var(--r-md);
   background: #fff;
-  padding: 4px;
+  padding: 5px;
   flex-shrink: 0;
 }
-.sb-brand__name { color: var(--sidebar-text); font-weight: 800; font-size: 1.12rem; line-height: 1.1; }
-.sb-brand__tag  { color: var(--sidebar-text-2); font-size: 0.78rem; margin-top: 2px; }
+.sb-brand__name { color: var(--sidebar-text); font-weight: 800; font-size: 1.22rem; line-height: 1.1; }
+.sb-brand__tag  { color: var(--sidebar-text-2); font-size: 0.82rem; margin-top: 3px; }
 
 .sb-nav { flex: 1; padding: 0.9rem 0.7rem 0; overflow-y: auto; overflow-x: hidden; }
 
