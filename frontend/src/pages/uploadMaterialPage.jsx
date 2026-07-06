@@ -26,6 +26,7 @@ function UploadMaterialPage() {
   const [loadingList, setLoadingList] = useState(false);
   const [status, setStatus] = useState({ type: "", text: "" });
   const [materialToDelete, setMaterialToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   async function loadUploadedFiles() {
     try {
@@ -105,8 +106,14 @@ function UploadMaterialPage() {
 
   async function confirmDeleteMaterial() {
     if (!materialToDelete) return;
-    await handleDeleteFile(materialToDelete.id);
-    setMaterialToDelete(null);
+
+    try {
+      setDeleteLoading(true);
+      await handleDeleteFile(materialToDelete.id);
+      setMaterialToDelete(null);
+    } finally {
+      setDeleteLoading(false);
+    }
   }
 
   return (
@@ -294,6 +301,7 @@ function UploadMaterialPage() {
         cancelText="Cancel"
         onConfirm={confirmDeleteMaterial}
         onCancel={() => setMaterialToDelete(null)}
+        loading={deleteLoading}
       />
     </div>
   );

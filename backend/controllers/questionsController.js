@@ -1,5 +1,5 @@
 const questionsBL = require("../BLs/questionBL");
-const {questionChatDto, questionMessageDto} = require("../Dtos//questionsChatDto");
+const { questionChatDto, questionMessageDto } = require("../Dtos//questionsChatDto");
 
 function getProjectId(req) {
   const projectId = req.body?.projectId || req.query?.projectId || req.params?.projectId;
@@ -34,7 +34,7 @@ async function createQuestionChat(req, res) {
       userId,
     });
 
-  res.status(201).json({ chat: questionChatDto(chat) });
+    res.status(201).json({ chat: questionChatDto(chat) });
   } catch (err) {
     res.status(500).json({
       error: err?.message || "Failed to create question chat",
@@ -140,7 +140,9 @@ async function askQuestion(req, res) {
     });
 
     res.json({
-      chatId: result.chatId,
+      success: result.success,
+      saveToDb: result.saveToDb,
+      chatId: result.chatId || req.body.chatId,
       message: questionMessageDto(result.message),
     });
   } catch (err) {

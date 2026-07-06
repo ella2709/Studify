@@ -31,6 +31,9 @@ async function generateExam({
   difficulty,
   language = "en",
 }) {
+
+  const MIN_RELEVANT_CHUNKS = 3;
+
   validateExamInput({ projectId, userId, type, numberOfQuestions });
 
   const materials = await materialDal.getAllMaterials(projectId, userId);
@@ -45,8 +48,11 @@ async function generateExam({
     20
   );
 
-  if (relevantChunks.length === 0) {
-    throw new Error("No relevant material chunks found");
+
+  if (relevantChunks.length < MIN_RELEVANT_CHUNKS) {
+    throw new Error(
+      "Not enough relevant study material was found to generate an exam. Please upload additional study materials and try again."
+    );
   }
 
   const aiExam = await generateExamWithAI({

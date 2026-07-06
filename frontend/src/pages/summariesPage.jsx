@@ -105,7 +105,7 @@ function SummarizePage() {
         <div className="alert" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
           <div>
             <strong style={{ display: "block", marginBottom: "0.15rem" }}>
-              Action needed
+              Notice!
             </strong>
             <span>{error}</span>
           </div>

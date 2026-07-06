@@ -31,6 +31,7 @@ function QuestionsPage() {
   const [error, setError] = useState("");
   const [isCreateChatDialogOpen, setIsCreateChatDialogOpen] = useState(false);
   const [chatToDelete, setChatToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const threadRef = useRef(null);
 
@@ -95,9 +96,16 @@ function QuestionsPage() {
     }
 
     const currentQuestion = question.trim();
-    const userMessage = { role: "user", content: currentQuestion };
 
-    setChatMessages((prev) => [...prev, userMessage]);
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        type: "text",
+        content: currentQuestion,
+      },
+    ]);
+
     setQuestion("");
 
     try {
@@ -109,9 +117,14 @@ function QuestionsPage() {
         projectId
       );
 
-      setChatMessages((prev) => [...prev, result.message]);
+      setChatMessages((prev) => [
+        ...prev,
+        result.message,
+      ]);
 
-      await refetchChats();
+      if (result.success !== false) {
+        await refetchChats();
+      }
     } catch (err) {
       setError(err.message || messages.askAi.error);
     } finally {
@@ -123,6 +136,8 @@ function QuestionsPage() {
     if (!chatToDelete) return;
 
     try {
+      setDeleteLoading(true);
+
       await deleteQuestionChat(chatToDelete.id, projectId);
 
       if (selectedChat?.id === chatToDelete.id) {
@@ -134,6 +149,8 @@ function QuestionsPage() {
       await refetchChats();
     } catch (err) {
       setError(err.message || "Failed to delete chat");
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -342,9 +359,8 @@ function QuestionsPage() {
             {chats.map((chat) => (
               <div
                 key={chat.id}
-                className={`chat-item${
-                  selectedChat?.id === chat.id ? " active" : ""
-                }`}
+                className={`chat-item${selectedChat?.id === chat.id ? " active" : ""
+                  }`}
               >
                 <button
                   className="chat-item__label"
@@ -389,6 +405,7 @@ function QuestionsPage() {
         cancelText="Cancel"
         onConfirm={handleDeleteChat}
         onCancel={() => setChatToDelete(null)}
+        loading={deleteLoading}
       />
     </div>
   );

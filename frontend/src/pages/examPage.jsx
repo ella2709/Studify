@@ -83,24 +83,16 @@ function ExamPage() {
 
     if (message.includes("Missing answers")) {
       const questions = message.split(":")[1]?.trim() || "";
-      return isHebrew
-        ? `יש שאלות שעדיין לא נענו: ${questions}`
-        : `Some questions are still unanswered: ${questions}`;
+       return `Some questions are still unanswered.`;
     }
     if (message.includes("No uploaded materials")) {
-      return isHebrew
-        ? "לא נמצאו חומרי לימוד בפרויקט הזה. יש להעלות חומרי לימוד לפני יצירת מבחן."
-        : "No study materials were found for this project. Please upload materials before creating an exam.";
+      return "No study materials were found for this project. Please upload materials before creating an exam.";
     }
     if (message.includes("No relevant material chunks")) {
-      return isHebrew
-        ? "לא נמצא מספיק מידע רלוונטי בחומרי הלימוד ליצירת מבחן."
-        : "Not enough relevant material was found to create an exam.";
+      return "Not enough relevant material was found to create an exam.";
     }
     if (message.includes("AI returned invalid JSON")) {
-      return isHebrew
-        ? "המערכת לא הצליחה לבנות מבחן תקין. נסי שוב בעוד רגע."
-        : "The system could not generate a valid exam. Please try again.";
+      return "The system could not generate a valid exam. Please try again.";
     }
     return message;
   }
@@ -176,7 +168,9 @@ function ExamPage() {
       {error && (
         <div className="alert" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
           <div>
-            <strong style={{ display: "block", marginBottom: "0.15rem" }}>Action needed</strong>
+            <strong style={{ display: "block", marginBottom: "0.15rem" }}>
+              Notice!
+            </strong>
             <span>{error}</span>
           </div>
         </div>

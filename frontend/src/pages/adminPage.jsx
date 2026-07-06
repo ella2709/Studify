@@ -13,7 +13,6 @@ import messages from "../messages";
 
 export default function AdminPage() {
     const { isAdmin, loading } = useAuth();
-
     const [users, setUsers] = useState([]);
     const [usersLoading, setUsersLoading] = useState(true);
     const [error, setError] = useState("");
@@ -26,6 +25,8 @@ export default function AdminPage() {
         confirmText: "Confirm",
         action: null,
     });
+    const [confirmLoading, setConfirmLoading] = useState(false);
+
 
     async function loadUsers() {
         try {
@@ -62,8 +63,13 @@ export default function AdminPage() {
     async function handleConfirmAction() {
         if (!confirmDialog.action) return;
 
-        await confirmDialog.action();
-        closeConfirmDialog();
+        try {
+            setConfirmLoading(true);
+            await confirmDialog.action();
+            closeConfirmDialog();
+        } finally {
+            setConfirmLoading(false);
+        }
     }
 
     useEffect(() => {
@@ -331,6 +337,7 @@ export default function AdminPage() {
                 cancelText="Cancel"
                 onCancel={closeConfirmDialog}
                 onConfirm={handleConfirmAction}
+                loading={confirmLoading}
             />
         </div>
     );

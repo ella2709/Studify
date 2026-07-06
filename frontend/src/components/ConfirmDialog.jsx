@@ -8,11 +8,12 @@ function ConfirmDialog({
   cancelText = "Cancel",
   onConfirm,
   onCancel,
+  loading = false,
 }) {
   if (!open) return null;
 
   return createPortal(
-    <div className="modal-overlay" onMouseDown={onCancel}>
+    <div className="modal-overlay" onMouseDown={loading ? undefined : onCancel}>
       <div
         className="modal"
         style={{ maxWidth: 420 }}
@@ -25,12 +26,20 @@ function ConfirmDialog({
         <p className="modal-text">{message}</p>
 
         <div className="modal-actions">
-          <button className="btn btn-secondary" onClick={onCancel}>
+          <button
+            className="btn btn-secondary"
+            onClick={onCancel}
+            disabled={loading}
+          >
             {cancelText}
           </button>
 
-          <button className="btn btn-danger" onClick={onConfirm}>
-            {confirmText}
+          <button
+            className="btn btn-danger"
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? "Deleting..." : confirmText}
           </button>
         </div>
       </div>

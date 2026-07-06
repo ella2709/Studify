@@ -289,6 +289,7 @@ function HomePage({
         cancelText="Cancel"
         onConfirm={handleDeleteProject}
         onCancel={() => setProjectToDelete(null)}
+        loading={deleteProjectMutation.isPending}
       />
     </div>
   );

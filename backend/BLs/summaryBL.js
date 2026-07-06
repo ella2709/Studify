@@ -12,6 +12,16 @@ async function generateSummary({ instruction, projectId, userId }) {
 
   const cleanInstruction = instruction.trim();
 
+  const INSUFFICIENT_INFORMATION_MESSAGE =
+    "No relevant information was found in the uploaded study materials for this topic.";
+
+  const MIN_INSTRUCTION_LENGTH = 10;
+  const MIN_RELEVANT_CHUNKS = 1;
+
+  if (cleanInstruction.length < MIN_INSTRUCTION_LENGTH) {
+    throw new Error("Summary instruction is too short. Please enter a more detailed study-related topic.");
+  }
+
   const materials = await materialDal.getAllMaterials(projectId, userId);
 
   if (!materials || materials.length === 0) {
@@ -24,21 +34,22 @@ async function generateSummary({ instruction, projectId, userId }) {
     8
   );
 
-  let summaryText;
-  let sources;
-
-  if (relevantChunks.length === 0) {
-    summaryText =
-      "No relevant information was found in the uploaded study materials for this topic.";
-    sources = [];
-  } else {
-    summaryText = await generateSummaryFromContext(
-      cleanInstruction,
-      relevantChunks
-    );
-
-    sources = buildUniqueSources(relevantChunks);
+  if (relevantChunks.length < MIN_RELEVANT_CHUNKS) {
+    throw new Error("Not enough relevant study material was found for this topic. Please upload additional materials related to this topic and try again.");
   }
+
+  const summaryText = await generateSummaryFromContext(
+    cleanInstruction,
+    relevantChunks
+  );
+
+  if (!summaryText || !summaryText.trim() || summaryText.trim() === INSUFFICIENT_INFORMATION_MESSAGE) {
+    throw new Error(
+      "No relevant information was found in the uploaded study materials for this topic."
+    );
+  }
+
+  const sources = buildUniqueSources(relevantChunks);
 
   const title =
     cleanInstruction.length > 60
