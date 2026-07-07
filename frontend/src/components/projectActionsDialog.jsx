@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import messages from "../messages";
 
 export function ProjectActionsDialog({
   open,
@@ -84,7 +85,7 @@ export function ProjectActionsDialog({
             disabled={creating}
             className="btn btn-secondary"
           >
-            Cancel
+            {messages.actions.cancel}
           </button>
 
           <button

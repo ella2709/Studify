@@ -17,6 +17,7 @@ const messages = {
     resetData: "Reset Data",
     active: "Active",
     clearAll: "Clear All",
+    cancel: "Cancel",
   },
 
   actionsTitle: {
@@ -35,9 +36,12 @@ const messages = {
 
 
   welcome: {
+    studify: "Studify",
+    tagline: "AI Study Assistant",
     title: "Welcome to Studify",
     hello: "Hello",
     question: "What will we study today?"
+
   },
 
   projects: {

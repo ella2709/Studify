@@ -5,7 +5,7 @@ import { auth } from "../authentication/firebaseAuth";
 import { HomeIcon, PlusIcon, PanelIcon } from "./iconsAndButtons";
 import { useAuth } from "../authentication/authContext";
 import { Chevron, LogoutIcon } from "./iconsAndButtons";
-
+import messages from "../messages";
 
 function projectInitial(name = "") {
   const trimmed = name.trim();
@@ -115,8 +115,8 @@ export function Sidebar({
         <Link to="/" onClick={onNavClick} className="sb-brand">
           <img src="/Logo.png" alt="Studify" className="sb-brand__logo" />
           <div style={{ minWidth: 0 }}>
-            <div className="sb-brand__name">Studify</div>
-            <div className="sb-brand__tag">AI Study Assistant</div>
+            <div className="sb-brand__name">{messages.welcome.studify}</div>
+            <div className="sb-brand__tag">{messages.welcome.tagline}</div>
           </div>
         </Link>
         <button className="sb-collapse-btn" onClick={onToggle} title="Collapse sidebar" aria-label="Collapse sidebar">
@@ -145,7 +145,7 @@ export function Sidebar({
 
         <div className="sb-section">
           <button className="sb-section__btn" onClick={() => setProjectsOpen((prev) => !prev)}>
-            <span className="sb-section__label">My Projects</span>
+            <span className="sb-section__label">{messages.projects.myProjects}</span>
             <Chevron open={projectsOpen} />
           </button>
 
@@ -167,7 +167,7 @@ export function Sidebar({
 
             {!projectsLoading && projects.length === 0 && (
               <div style={{ padding: "0.5rem 0.6rem", color: "var(--sidebar-text-2)", fontSize: "0.83rem" }}>
-                No projects yet
+                {messages.projects.noProjects}
               </div>
             )}
 
