@@ -182,7 +182,7 @@ function HomePage({
             marginBottom: "1rem",
           }}
         >
-          <h2 className="section-title">My Projects</h2>
+          <h2 className="section-title">{messages.projects.myProjects}</h2>
 
           <button onClick={onRefresh} className="btn btn-ghost btn-sm">
             Refresh
@@ -215,16 +215,15 @@ function HomePage({
           <div className="empty-state" style={{ minHeight: 220 }}>
             <div className="empty-icon">📚</div>
 
-            <h3 className="empty-title">No projects yet</h3>
+            <h3 className="empty-title">{messages.projects.noProjects}</h3>
 
             <p className="empty-text">
-              Create your first project to start uploading materials and
-              studying with AI.
+                {messages.projects.createFirst}
             </p>
 
             <button onClick={openCreateDialog} className="btn btn-primary">
               <PlusIcon />
-              Create project
+              {messages.projects.create}
             </button>
           </div>
         )}
@@ -236,9 +235,9 @@ function HomePage({
             <div className="empty-state" style={{ minHeight: 220 }}>
               <div className="empty-icon">🔍</div>
 
-              <h3 className="empty-title">No matching projects</h3>
+              <h3 className="empty-title">{messages.projects.noMatchingProjects}</h3>
 
-              <p className="empty-text">Try a different project name.</p>
+              <p className="empty-text">{messages.projects.differentName}</p>
             </div>
           )}
 

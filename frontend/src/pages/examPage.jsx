@@ -176,7 +176,7 @@ function ExamPage() {
         </div>
       )}
 
-      {/* ── Create + history ── */}
+      {/* Create + history */}
       {!examId && (
         <>
           <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
@@ -264,7 +264,7 @@ function ExamPage() {
         </>
       )}
 
-      {/* ── Exam taking / review ── */}
+      {/* Exam taking / review */}
       {examId && exam && (
         <section
           className="card card-pad"

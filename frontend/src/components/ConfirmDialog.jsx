@@ -6,6 +6,7 @@ function ConfirmDialog({
   message,
   confirmText = "Delete",
   cancelText = "Cancel",
+  loadingText = "Deleting...",
   onConfirm,
   onCancel,
   loading = false,
@@ -39,7 +40,7 @@ function ConfirmDialog({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? "Deleting..." : confirmText}
+            {loading ? loadingText : confirmText}
           </button>
         </div>
       </div>

@@ -19,39 +19,8 @@ function SourcesList({ sources = [] }) {
   );
 }
 
-function SummaryFileMessage({ message }) {
-  const file = message.file;
-
-  if (!file?.downloadUrl) {
-    return <AiTextBlock text={message.content || "Summary file created"} />;
-  }
-
-  return (
-    <>
-      <div style={{ border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: "0.9rem", background: "var(--bg-surface)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.65rem" }}>
-          <div className="file-badge">TXT</div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>Summary file</div>
-            <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {file.fileName || "summary.txt"}
-            </div>
-          </div>
-        </div>
-        <a href={file.downloadUrl} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">
-          Open / Download
-        </a>
-      </div>
-      <SourcesList sources={message.sources} />
-    </>
-  );
-}
 
 function AssistantMessage({ message }) {
-  if (message.type === "file") {
-    return <SummaryFileMessage message={message} />;
-  }
-
   return (
     <>
       <AiTextBlock text={message.content} />

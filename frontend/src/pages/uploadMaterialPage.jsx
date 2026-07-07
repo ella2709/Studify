@@ -129,10 +129,10 @@ function UploadMaterialPage() {
         <Link to={`/project/${projectId}`} state={{ projectName }} className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
           <ChevronLeft /> {projectName}
         </Link>
-        <p className="page-eyebrow">Study Materials</p>
+        <p className="page-eyebrow">{messages.pageTitles.material}</p>
         <h1 className="page-title">Upload &amp; manage files</h1>
         <p className="page-subtitle">
-          Add materials that power your summaries, questions, and AI-based learning.
+         {messages.pagePurposes.upload}
         </p>
       </div>
 
@@ -183,9 +183,9 @@ function UploadMaterialPage() {
             <AttachmentIcon />
           </div>
           <div>
-            <div style={{ fontSize: "1rem", fontWeight: 700 }}>Choose files to upload</div>
+            <div style={{ fontSize: "1rem", fontWeight: 700 }}>{messages.upload.chooseFiles}</div>
             <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: 3 }}>
-              Supported: PDF, Word, Excel, PowerPoint, text and code files
+              {messages.upload.supportedFiles}
             </div>
           </div>
         </label>
@@ -194,10 +194,10 @@ function UploadMaterialPage() {
           <>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "1.1rem 0 0.65rem" }}>
               <span style={{ fontSize: "0.82rem", fontWeight: 700 }}>
-                Selected files ({selectedFiles.length})
+                {messages.upload.selectedFiles} ({selectedFiles.length})
               </span>
               <button type="button" onClick={() => setSelectedFiles([])} className="btn btn-ghost btn-sm">
-                Clear all
+                {messages.actions.clearAll}
               </button>
             </div>
 
@@ -265,8 +265,8 @@ function UploadMaterialPage() {
         {!loadingList && uploadedFiles.length === 0 && (
           <div className="empty-state" style={{ padding: "1.5rem 1rem" }}>
             <div className="empty-icon">📄</div>
-            <h3 className="empty-title">No study files yet</h3>
-            <p className="empty-text">Select files above and upload them to start using this project.</p>
+            <h3 className="empty-title">{messages.upload.noStudyMaterials}</h3>
+            <p className="empty-text">{messages.upload.noStudyMaterialsDescription}</p>
           </div>
         )}
 

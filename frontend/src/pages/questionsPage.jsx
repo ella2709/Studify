@@ -199,7 +199,7 @@ function QuestionsPage() {
                 margin: "0.2rem 0 0",
               }}
             >
-              Ask questions based on your uploaded study materials.
+              {messages.pagePurposes.questions}
             </p>
           </div>
 
@@ -222,10 +222,9 @@ function QuestionsPage() {
                 }}
               >
                 <div className="empty-icon">💬</div>
-                <h3 className="empty-title">Start a conversation</h3>
+                <h3 className="empty-title">{messages.askAi.startConversation}</h3>
                 <p className="empty-text">
-                  Select an existing chat from the right, or create a new one to
-                  begin asking questions.
+                  {messages.askAi.chat}
                 </p>
 
                 <button
@@ -233,7 +232,7 @@ function QuestionsPage() {
                   className="btn btn-primary"
                   style={{ marginTop: "1rem" }}
                 >
-                  + New chat
+                  {messages.askAi.newChat}
                 </button>
               </div>
             </div>
@@ -288,7 +287,7 @@ function QuestionsPage() {
                   className="btn btn-primary"
                   style={{ flexShrink: 0 }}
                 >
-                  {loading ? messages.askAi.loading : messages.askAi.submit}
+                  {messages.askAi.submit}
                 </button>
               </div>
             </>
@@ -304,7 +303,7 @@ function QuestionsPage() {
                 margin: "0 0 0.2rem",
               }}
             >
-              Question Chats
+              {messages.askAi.chatsTitle}
             </h3>
 
             <p
@@ -314,7 +313,7 @@ function QuestionsPage() {
                 margin: 0,
               }}
             >
-              Create or continue chats.
+              {messages.askAi.chatsSubTitle}
             </p>
           </div>
 
@@ -352,7 +351,7 @@ function QuestionsPage() {
                   borderRadius: "var(--r-sm)",
                 }}
               >
-                No chats yet
+                {messages.askAi.noChats}
               </div>
             )}
 

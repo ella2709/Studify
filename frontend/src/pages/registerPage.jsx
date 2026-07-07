@@ -55,22 +55,22 @@ export default function RegisterPage() {
     <AuthShell title={messages.registerAndLogin.signup} subtitle="Create your account to start studying smarter.">
       <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
         <div className="field">
-          <label className="field-label">Name</label>
+          <label className="field-label">{messages.registerAndLogin.name}</label>
           <input className="input-base" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
 
         <div className="field">
-          <label className="field-label">Email</label>
+          <label className="field-label">{messages.registerAndLogin.email}</label>
           <input className="input-base" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
 
         <div className="field">
-          <label className="field-label">Password</label>
+          <label className="field-label">{messages.registerAndLogin.password}</label>
           <PasswordInput value={password} onChange={setPassword} show={showPassword} onToggle={() => setShowPassword((p) => !p)} placeholder="••••••••" />
         </div>
 
         <div className="field">
-          <label className="field-label">Confirm password</label>
+          <label className="field-label">{messages.registerAndLogin.confirmPassword}</label>
           <PasswordInput value={confirmPassword} onChange={setConfirmPassword} show={showConfirmPassword} onToggle={() => setShowConfirmPassword((p) => !p)} placeholder="••••••••" />
         </div>
 

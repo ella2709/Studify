@@ -1,4 +1,5 @@
 import { useParams, useLocation, Link } from "react-router-dom";
+import messages from "../messages";
 
 function titleFromId(projectId) {
   return projectId
@@ -18,7 +19,7 @@ function ProjectPage() {
       to: `/project/${projectId}/upload`,
       icon: "📎",
       label: "Upload Materials",
-      description: "Upload study files — txt, md, csv, json, pdf and more.",
+      description: "Upload study files - txt, md, csv, json, pdf and more.",
     },
     {
       to: `/project/${projectId}/questions`,
@@ -57,10 +58,10 @@ function ProjectPage() {
         }}
       >
         <Link to="/" className="breadcrumb" style={{ marginBottom: "0.9rem" }}>
-          <ChevronLeft /> All projects
+          <ChevronLeft /> {messages.projects.allProjects}
         </Link>
 
-        <p className="page-eyebrow">Project</p>
+        <p className="page-eyebrow">{messages.pageTitles.project}</p>
 
        <h1
         style={{
@@ -75,7 +76,7 @@ function ProjectPage() {
       </h1>
 
         <p className="page-subtitle">
-          Choose a tool to work with your study materials.
+         {messages.upload.chooseTool}
         </p>
     </div>
 

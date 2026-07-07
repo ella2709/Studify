@@ -16,6 +16,7 @@ const messages = {
     deleted: "Deleted",
     resetData: "Reset Data",
     active: "Active",
+    clearAll: "Clear All",
   },
 
   actionsTitle: {
@@ -31,6 +32,8 @@ const messages = {
     student: "Student",
   },
 
+
+
   welcome: {
     title: "Welcome to Studify",
     hello: "Hello",
@@ -38,14 +41,22 @@ const messages = {
   },
 
   projects: {
-    create: "create new project"
+    myProjects: "My Projects",
+    create: "Create Project",
+    createNew: "create new project",
+    createFirst:"Create your first project to start uploading materials and studying with AI.",
+    noProjects: "No projects yet",
+    noMatchingProjects: "No matching projects",
+    differentName: "Try a different project name.",
+    allProjects: "All Projects",
   },
+
+
 
   upload: {
     title: "Upload Study Material",
     description: "You can upload text files such as txt / md / json / csv.",
     selectFiles: "Select files",
-    selectedFiles: "Selected files:",
     uploadButton: "Upload files",
     uploading: "Uploading files...",
     noFilesSelected: "Please select at least one file",
@@ -55,6 +66,12 @@ const messages = {
     uploadedFilesTitle: "Uploaded files",
     fileSize: "Size",
     fileType: "Type",
+    chooseTool: "Choose a tool to work with your study materials.",
+    chooseFiles: "Choose files to upload",
+    supportedFiles: "Supported: PDF, Word, Excel, PowerPoint, text and code files",
+    selectedFiles: "Selected files",
+    noStudyMaterials: "No study files yet",
+    noStudyMaterialsDescription: "Select files above and upload them to start using this project",
   },
 
   askAi: {
@@ -70,27 +87,37 @@ const messages = {
     answerTitle: "AI Answer:",
     noUploadedFiles: "No uploaded files available",
     emptyMaterial: "The selected file is empty",
+    newChat: "+ New chat",
+    chat: "Select an existing chat from the right, or create a new one to begin asking questions.",
+    chatsTitle: "Question Chats",
+    chatsSubTitle: "Create or continue chats.",
+    startConversation: "Start a conversation",
+    noChats: "No chats yet",
   },
 
   summarize: {
     title: "Summary of Study Material",
     description: "Generate a summary based on a specific topic from your uploaded materials",
-
     topicLabel: "Topic",
     missingTopic: "Please enter a topic for the summary",
-
     loading: "Generating summary...",
-
     noUploadedFiles: "No uploaded files available",
     emptyMaterial: "The selected file is empty",
-
     missingFields: "Please enter a topic",
     topicPlaceholder: "Write a topic to summarize...",
     submit: "Summarize",
     error: "Failed to generate summary",
+    question: "What would you like to summarize?",
+    generating: "Generating...",
+    generated: "Generated Summary",
+    firstSummary: "Generate your first summary above to get started.",
   },
 
   registerAndLogin: {
+     name: "Name",
+    email: "Email",
+    password: "Password",
+    confirmPassword: "Confirm Password",
     createAccount: "Create account",
     newHere: "New here?",
     signIn: "Sign In",
@@ -138,10 +165,17 @@ const messages = {
 
   pageTitles: {
     admin: "Admin Panel",
+    project: "project",
+    material: "Study Materials",
+    summary: "Summary Generator",
   },
 
   pagePurposes: {
-    admin: "Manage system users, permissions and user data."
+    admin: "Manage system users, permissions and user data.",
+    upload:" Add materials that power your summaries, questions, and AI-based learning.",
+    questions: "Ask questions based on your uploaded study materials.",
+    summary: "Summarize your materials",
+
   }
 
 };

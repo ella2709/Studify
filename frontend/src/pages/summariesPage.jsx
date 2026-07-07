@@ -1,10 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import {
-  useGenerateSummary,
-  useProjectSummaries,
-} from "../services/summaryService";
+import { useGenerateSummary, useProjectSummaries } from "../services/summaryService";
 import { safeFormatDate } from "../helpers/dateHelper";
+import messages from "../messages";
 
 function projectNameFromId(projectId) {
   return projectId
@@ -97,8 +95,8 @@ function SummarizePage() {
       </Link>
 
       <div className="page-head" style={{ flexShrink: 0, marginBottom: "0.6rem" }}>
-        <p className="page-eyebrow">Summary Generator</p>
-        <h1 className="page-title">Summarize your materials</h1>
+        <p className="page-eyebrow">{messages.pageTitles.summary}</p>
+        <h1 className="page-title">{messages.pagePurposes.summary}</h1>
       </div>
 
       {error && (
@@ -114,7 +112,7 @@ function SummarizePage() {
 
       <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
         <h3 className="section-title" style={{ marginBottom: "0.5rem" }}>
-          What would you like to summarize?
+          {messages.summarize.question}
         </h3>
 
         <div className="field" style={{ marginBottom: "0.5rem" }}>
@@ -138,7 +136,7 @@ function SummarizePage() {
         >
           {loading ? (
             <>
-              <span className="spinner" /> Generating...
+              <span className="spinner" /> {messages.summarize.generating}
             </>
           ) : (
             "Generate Summary"
@@ -149,7 +147,7 @@ function SummarizePage() {
       {createdSummary && (
         <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
           <h2 className="section-title" style={{ marginBottom: "1rem" }}>
-            Generated Summary
+            {messages.summarize.generated}
           </h2>
 
           <button
@@ -207,7 +205,7 @@ function SummarizePage() {
               <div className="empty-icon">📝</div>
               <h3 className="empty-title">No summaries yet</h3>
               <p className="empty-text">
-                Generate your first summary above to get started.
+                {messages.summarize.firstSummary}
               </p>
             </div>
           )}

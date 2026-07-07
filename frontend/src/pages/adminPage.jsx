@@ -23,8 +23,10 @@ export default function AdminPage() {
         title: "",
         message: "",
         confirmText: "Confirm",
+        loadingText: "",
         action: null,
     });
+
     const [confirmLoading, setConfirmLoading] = useState(false);
 
 
@@ -42,12 +44,13 @@ export default function AdminPage() {
         }
     }
 
-    function openConfirmDialog({ title, message, confirmText, action }) {
+    function openConfirmDialog({ title, message, confirmText, loadingText, action }) {
         setConfirmDialog({
             open: true,
             title,
             message,
             confirmText,
+            loadingText,
             action,
         });
     }
@@ -247,6 +250,7 @@ export default function AdminPage() {
                                                                 title: messages.actionsTitle.unblock,
                                                                 message: messages.confirmationMessages.unblock,
                                                                 confirmText: "Unblock",
+                                                                loadingText: "Unblocking...",
                                                                 action: () =>
                                                                     runAction(
                                                                         user.uid,
@@ -267,6 +271,7 @@ export default function AdminPage() {
                                                                 title: messages.actionsTitle.block,
                                                                 message: messages.confirmationMessages.block,
                                                                 confirmText: "Block",
+                                                                loadingText: "Blocking...",
                                                                 action: () =>
                                                                     runAction(
                                                                         user.uid,
@@ -288,6 +293,7 @@ export default function AdminPage() {
                                                             title: messages.actionsTitle.resetData,
                                                             message: messages.confirmationMessages.resetData,
                                                             confirmText: "Reset data",
+                                                            loadingText: "Resetting data...",
                                                             action: () =>
                                                                 runAction(
                                                                     user.uid,
@@ -335,6 +341,7 @@ export default function AdminPage() {
                 message={confirmDialog.message}
                 confirmText={confirmDialog.confirmText}
                 cancelText="Cancel"
+                loadingText={confirmDialog.loadingText}
                 onCancel={closeConfirmDialog}
                 onConfirm={handleConfirmAction}
                 loading={confirmLoading}
