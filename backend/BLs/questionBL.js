@@ -60,7 +60,7 @@ async function askQuestion({ chatId, question, projectId, userId }) {
 
   const cleanQuestion = question.trim();
   const INSUFFICIENT_INFORMATION_MESSAGE = "I couldn't find enough information in the uploaded study materials to answer this question.";
-  const MIN_QUESTION_LENGTH = 10;
+  const MIN_QUESTION_LENGTH = 8;
   const MIN_RELEVANT_CHUNKS = 1;
 
   if (cleanQuestion.length < MIN_QUESTION_LENGTH) {

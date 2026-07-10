@@ -15,7 +15,7 @@ async function generateSummary({ instruction, projectId, userId }) {
   const INSUFFICIENT_INFORMATION_MESSAGE =
     "No relevant information was found in the uploaded study materials for this topic.";
 
-  const MIN_INSTRUCTION_LENGTH = 10;
+  const MIN_INSTRUCTION_LENGTH = 8;
   const MIN_RELEVANT_CHUNKS = 1;
 
   if (cleanInstruction.length < MIN_INSTRUCTION_LENGTH) {
