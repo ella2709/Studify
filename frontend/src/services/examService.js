@@ -1,24 +1,59 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+
 import { API } from "../api";
 import { getAuthHeaders } from "../authentication/authHeaders";
 
 async function handleResponse(res) {
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+
+  let data = {};
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = {};
+  }
 
   if (!res.ok) {
-    throw new Error(data.error || data.message || "Request failed");
+    const error = new Error(
+      data.error || data.message || "Request failed"
+    );
+
+    error.code = data.code || null;
+    error.status = res.status;
+
+    if (error.code === "AI_LIMIT_REACHED") {
+      window.dispatchEvent(
+        new CustomEvent("ai-limit-reached", {
+          detail: {
+            message:
+              data.error ||
+              data.message ||
+              "AI features are temporarily unavailable.",
+          },
+        })
+      );
+    }
+
+    throw error;
   }
 
   return data;
 }
 
 export async function generateExam(payload) {
-  const res = await fetch(API.GENERATE_EXAM, {
-    method: "POST",
-    headers: await getAuthHeaders(),
-    body: JSON.stringify(payload),
-  });
+  const res = await fetch(
+    API.GENERATE_EXAM,
+    {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload),
+    }
+  );
 
   return handleResponse(res);
 }
@@ -28,33 +63,51 @@ export const useGenerateExam = () => {
 
   return useMutation({
     mutationFn: generateExam,
+
     onSuccess: (exam) => {
-      queryClient.invalidateQueries({ queryKey: ["exams", exam.projectId] });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "exams",
+          exam.projectId,
+        ],
+      });
     },
   });
 };
 
-export async function getProjectExams(projectId) {
-  const res = await fetch(API.GET_PROJECT_EXAMS(projectId), {
-    headers: await getAuthHeaders(),
-  });
+export async function getProjectExams(
+  projectId
+) {
+  const res = await fetch(
+    API.GET_PROJECT_EXAMS(projectId),
+    {
+      headers: await getAuthHeaders(),
+    }
+  );
 
   const data = await handleResponse(res);
+
   return data.exams || [];
 }
 
-export const useProjectExams = (projectId) => {
+export const useProjectExams = (
+  projectId
+) => {
   return useQuery({
     queryKey: ["exams", projectId],
-    queryFn: () => getProjectExams(projectId),
+    queryFn: () =>
+      getProjectExams(projectId),
     enabled: !!projectId,
   });
 };
 
 export async function getExamById(examId) {
-  const res = await fetch(API.GET_EXAM_BY_ID(examId), {
-    headers: await getAuthHeaders(),
-  });
+  const res = await fetch(
+    API.GET_EXAM_BY_ID(examId),
+    {
+      headers: await getAuthHeaders(),
+    }
+  );
 
   return handleResponse(res);
 }
@@ -62,16 +115,22 @@ export async function getExamById(examId) {
 export const useExam = (examId) => {
   return useQuery({
     queryKey: ["exam", examId],
-    queryFn: () => getExamById(examId),
+    queryFn: () =>
+      getExamById(examId),
     enabled: !!examId,
   });
 };
 
-export async function startExam({ examId }) {
-  const res = await fetch(API.START_EXAM(examId), {
-    method: "POST",
-    headers: await getAuthHeaders(),
-  });
+export async function startExam({
+  examId,
+}) {
+  const res = await fetch(
+    API.START_EXAM(examId),
+    {
+      method: "POST",
+      headers: await getAuthHeaders(),
+    }
+  );
 
   return handleResponse(res);
 }
@@ -82,12 +141,22 @@ export const useStartExam = () => {
   });
 };
 
-export async function submitExam({ examId, attemptId, answers }) {
-  const res = await fetch(API.SUBMIT_EXAM(examId), {
-    method: "POST",
-    headers: await getAuthHeaders(),
-    body: JSON.stringify({ attemptId, answers }),
-  });
+export async function submitExam({
+  examId,
+  attemptId,
+  answers,
+}) {
+  const res = await fetch(
+    API.SUBMIT_EXAM(examId),
+    {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({
+        attemptId,
+        answers,
+      }),
+    }
+  );
 
   return handleResponse(res);
 }
@@ -97,11 +166,28 @@ export const useSubmitExam = () => {
 
   return useMutation({
     mutationFn: submitExam,
-    onSuccess: (attempt, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["exam", variables.examId] });
-      queryClient.invalidateQueries({ queryKey: ["exams"] });
+
+    onSuccess: (
+      attempt,
+      variables
+    ) => {
       queryClient.invalidateQueries({
-        queryKey: ["examAttempt", variables.examId, attempt.id],
+        queryKey: [
+          "exam",
+          variables.examId,
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["exams"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          "examAttempt",
+          variables.examId,
+          attempt.id,
+        ],
       });
     },
   });
@@ -119,8 +205,7 @@ export async function saveAttemptAnswers({
     ),
     {
       method: "PATCH",
-      headers:
-        await getAuthHeaders(),
+      headers: await getAuthHeaders(),
       body: JSON.stringify({
         answers,
       }),

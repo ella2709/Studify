@@ -1,8 +1,13 @@
 const questionsBL = require("../BLs/questionBL");
-const { questionChatDto, questionMessageDto } = require("../Dtos//questionsChatDto");
+const { questionChatDto, questionMessageDto,} = require("../Dtos/questionsChatDto");
+
+const { sendControllerError, } = require("../helpers/geminiErrorHelper");
 
 function getProjectId(req) {
-  const projectId = req.body?.projectId || req.query?.projectId || req.params?.projectId;
+  const projectId =
+    req.body?.projectId ||
+    req.query?.projectId ||
+    req.params?.projectId;
 
   if (!projectId || !projectId.trim()) {
     return null;
@@ -21,11 +26,15 @@ async function createQuestionChat(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const chat = await questionsBL.createChat({
@@ -34,11 +43,17 @@ async function createQuestionChat(req, res) {
       userId,
     });
 
-    res.status(201).json({ chat: questionChatDto(chat) });
-  } catch (err) {
-    res.status(500).json({
-      error: err?.message || "Failed to create question chat",
+    return res.status(201).json({
+      chat: questionChatDto(chat),
     });
+  } catch (err) {
+    console.error("CREATE QUESTION CHAT ERROR:", err);
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to create question chat"
+    );
   }
 }
 
@@ -48,20 +63,33 @@ async function getQuestionChats(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
-    const chats = await questionsBL.getChats({ projectId, userId });
-
-    res.json({ chats: chats.map(questionChatDto) });
-  } catch (err) {
-    res.status(500).json({
-      error: err?.message || "Failed to get question chats",
+    const chats = await questionsBL.getChats({
+      projectId,
+      userId,
     });
+
+    return res.json({
+      chats: chats.map(questionChatDto),
+    });
+  } catch (err) {
+    console.error("GET QUESTION CHATS ERROR:", err);
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to get question chats"
+    );
   }
 }
 
@@ -71,11 +99,15 @@ async function getQuestionChatMessages(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const messages = await questionsBL.getChatMessages({
@@ -84,11 +116,17 @@ async function getQuestionChatMessages(req, res) {
       userId,
     });
 
-    res.json({ messages: messages.map(questionMessageDto) });
-  } catch (err) {
-    res.status(500).json({
-      error: err?.message || "Failed to get question chat messages",
+    return res.json({
+      messages: messages.map(questionMessageDto),
     });
+  } catch (err) {
+    console.error("GET QUESTION CHAT MESSAGES ERROR:", err);
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to get question chat messages"
+    );
   }
 }
 
@@ -98,11 +136,15 @@ async function deleteQuestionChat(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     await questionsBL.deleteChat({
@@ -111,11 +153,17 @@ async function deleteQuestionChat(req, res) {
       userId,
     });
 
-    res.json({ deletedChatId: req.params.chatId });
-  } catch (err) {
-    res.status(500).json({
-      error: err?.message || "Failed to delete question chat",
+    return res.json({
+      deletedChatId: req.params.chatId,
     });
+  } catch (err) {
+    console.error("DELETE QUESTION CHAT ERROR:", err);
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to delete question chat"
+    );
   }
 }
 
@@ -125,11 +173,15 @@ async function askQuestion(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const result = await questionsBL.askQuestion({
@@ -139,7 +191,7 @@ async function askQuestion(req, res) {
       userId,
     });
 
-    res.json({
+    return res.json({
       success: result.success,
       saveToDb: result.saveToDb,
       chatId: result.chatId || req.body.chatId,
@@ -148,9 +200,11 @@ async function askQuestion(req, res) {
   } catch (err) {
     console.error("ASK QUESTION ERROR:", err);
 
-    res.status(500).json({
-      error: err?.message || "Question request failed",
-    });
+    return sendControllerError(
+      res,
+      err,
+      "Question request failed"
+    );
   }
 }
 

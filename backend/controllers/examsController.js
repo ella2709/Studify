@@ -1,8 +1,12 @@
 const examsBL = require("../BLs/examBL");
 
+const { sendControllerError, } = require("../helpers/geminiErrorHelper");
+
 function getProjectId(req) {
   const projectId =
-    req.body?.projectId || req.query?.projectId || req.params?.projectId;
+    req.body?.projectId ||
+    req.query?.projectId ||
+    req.params?.projectId;
 
   if (!projectId || !projectId.trim()) {
     return null;
@@ -21,11 +25,15 @@ async function generateExam(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const exam = await examsBL.generateExam({
@@ -34,13 +42,15 @@ async function generateExam(req, res) {
       userId,
     });
 
-    res.status(201).json(exam);
+    return res.status(201).json(exam);
   } catch (error) {
-    console.error("Generate exam error:", error);
+    console.error("GENERATE EXAM ERROR:", error);
 
-    res.status(500).json({
-      error: error?.message || "Failed to generate exam",
-    });
+    return sendControllerError(
+      res,
+      error,
+      "Failed to generate exam"
+    );
   }
 }
 
@@ -50,20 +60,33 @@ async function getProjectExams(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
-    const exams = await examsBL.getProjectExams(projectId, userId);
+    const exams = await examsBL.getProjectExams(
+      projectId,
+      userId
+    );
 
-    res.json({ exams });
-  } catch (error) {
-    res.status(500).json({
-      error: error?.message || "Failed to get exams",
+    return res.json({
+      exams,
     });
+  } catch (error) {
+    console.error("GET PROJECT EXAMS ERROR:", error);
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to get exams"
+    );
   }
 }
 
@@ -72,16 +95,31 @@ async function getExamById(req, res) {
     const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
-    const exam = await examsBL.getExamById(req.params.examId, userId);
+    const exam = await examsBL.getExamById(
+      req.params.examId,
+      userId
+    );
 
-    res.json(exam);
+    return res.json(exam);
   } catch (error) {
-    res.status(404).json({
-      error: error?.message || "Exam not found",
-    });
+    console.error("GET EXAM BY ID ERROR:", error);
+
+    if (error?.message === "Exam not found") {
+      return res.status(404).json({
+        error: "Exam not found",
+      });
+    }
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to get exam"
+    );
   }
 }
 
@@ -90,16 +128,25 @@ async function startExam(req, res) {
     const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
-    const attempt = await examsBL.startExam(req.params.examId, userId);
+    const attempt = await examsBL.startExam(
+      req.params.examId,
+      userId
+    );
 
-    res.status(201).json(attempt);
+    return res.status(201).json(attempt);
   } catch (error) {
-    res.status(500).json({
-      error: error?.message || "Failed to start exam",
-    });
+    console.error("START EXAM ERROR:", error);
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to start exam"
+    );
   }
 }
 
@@ -108,19 +155,28 @@ async function submitExam(req, res) {
     const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
-    const result = await examsBL.submitExam(req.params.examId, {
-      ...req.body,
-      userId,
-    });
+    const result = await examsBL.submitExam(
+      req.params.examId,
+      {
+        ...req.body,
+        userId,
+      }
+    );
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
-    res.status(500).json({
-      error: error?.message || "Failed to submit exam",
-    });
+    console.error("SUBMIT EXAM ERROR:", error);
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to submit exam"
+    );
   }
 }
 
@@ -129,7 +185,9 @@ async function getAttemptById(req, res) {
     const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     const attempt = await examsBL.getAttemptById(
@@ -138,11 +196,21 @@ async function getAttemptById(req, res) {
       userId
     );
 
-    res.json(attempt);
+    return res.json(attempt);
   } catch (error) {
-    res.status(404).json({
-      error: error?.message || "Attempt not found",
-    });
+    console.error("GET ATTEMPT BY ID ERROR:", error);
+
+    if (error?.message === "Attempt not found") {
+      return res.status(404).json({
+        error: "Attempt not found",
+      });
+    }
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to get attempt"
+    );
   }
 }
 
@@ -151,18 +219,35 @@ async function exportExamTxt(req, res) {
     const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
-    const txt = await examsBL.exportExamTxt(req.params.examId, userId);
+    const txt = await examsBL.exportExamTxt(
+      req.params.examId,
+      userId
+    );
 
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Content-Disposition", "attachment; filename=exam.txt");
-    res.send(txt);
+    res.setHeader(
+      "Content-Type",
+      "text/plain; charset=utf-8"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=exam.txt"
+    );
+
+    return res.send(txt);
   } catch (error) {
-    res.status(500).json({
-      error: error?.message || "Failed to export exam",
-    });
+    console.error("EXPORT EXAM ERROR:", error);
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to export exam"
+    );
   }
 }
 
@@ -171,20 +256,29 @@ async function saveAttemptAnswers(req, res) {
     const userId = getUserId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
-    const attempt = await examsBL.saveAttemptAnswers(req.params.examId, {
-      attemptId: req.params.attemptId,
-      userId,
-      answers: req.body.answers || {},
-    });
+    const attempt = await examsBL.saveAttemptAnswers(
+      req.params.examId,
+      {
+        attemptId: req.params.attemptId,
+        userId,
+        answers: req.body.answers || {},
+      }
+    );
 
-    res.json(attempt);
+    return res.json(attempt);
   } catch (error) {
-    res.status(500).json({
-      error: error?.message || "Failed to save answers",
-    });
+    console.error("SAVE ATTEMPT ANSWERS ERROR:", error);
+
+    return sendControllerError(
+      res,
+      error,
+      "Failed to save answers"
+    );
   }
 }
 

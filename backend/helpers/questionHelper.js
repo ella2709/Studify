@@ -1,32 +1,37 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { detectLanguage } = require("../utils/textUtils");
+const {
+  normalizeGeminiError,
+} = require("./geminiErrorHelper");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-
 async function generateAnswerFromContext(question, relevantChunks) {
-  const context = relevantChunks
-    .map(
-      (chunk, index) => `
+  try {
+    const context = relevantChunks
+      .map(
+        (chunk, index) => `
 [Source ${index + 1}]
 File: ${chunk.fileName}
 Chunk: ${chunk.chunkIndex + 1}
 
 ${chunk.text}
 `
-    )
-    .join("\n--------------------\n");
+      )
+      .join("\n--------------------\n");
 
-  const outputLanguage = detectLanguage(question);
+    const outputLanguage = detectLanguage(question);
 
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
 
- const prompt = `
-    You are a study assistant.
+    const prompt = `
+You are a study assistant.
 
-    Answer the user's question ONLY using the retrieved excerpts below.
+Answer the user's question ONLY using the retrieved excerpts below.
 
-    IMPORTANT RULES:
+IMPORTANT RULES:
 - Use ONLY the retrieved excerpts.
 - Do NOT use outside knowledge.
 - Do NOT mention files that are not relevant to the answer.
@@ -36,22 +41,33 @@ ${chunk.text}
 - Otherwise, answer in ${outputLanguage}.
 - Keep the answer concise, clear, and focused on the question.
 
-  IF the retrieved excerpts do NOT contain enough information to answer the question,
-  you MUST return EXACTLY the following sentence and NOTHING ELSE:
+If the retrieved excerpts do NOT contain enough information to answer the question,
+you MUST return EXACTLY the following sentence and NOTHING ELSE:
 
-  I couldn't find enough information in the uploaded study materials to answer this question.
-    RETRIEVED EXCERPTS:
-    ${context}
+I couldn't find enough information in the uploaded study materials to answer this question.
 
-    QUESTION:
-    ${question}
-    `;
+RETRIEVED EXCERPTS:
+${context}
 
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+QUESTION:
+${question}
+`;
+
+    const result = await model.generateContent(prompt);
+
+    const answer = result?.response?.text();
+
+    if (!answer) {
+      throw new Error("Gemini did not return an answer");
+    }
+
+    return answer;
+  } catch (error) {
+    console.error("GEMINI QUESTION ERROR:", error);
+
+    throw normalizeGeminiError(error);
+  }
 }
-
-
 
 module.exports = {
   generateAnswerFromContext,

@@ -1,8 +1,12 @@
 const materialBL = require("../BLs/materialBL");
 
+const { sendControllerError, } = require("../helpers/geminiErrorHelper");
+
 function getProjectId(req) {
   const projectId =
-    req.body?.projectId || req.query?.projectId || req.params?.projectId;
+    req.body?.projectId ||
+    req.query?.projectId ||
+    req.params?.projectId;
 
   if (!projectId || !projectId.trim()) {
     return null;
@@ -21,11 +25,15 @@ async function uploadMaterials(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const files = await materialBL.uploadMaterials({
@@ -34,16 +42,18 @@ async function uploadMaterials(req, res) {
       userId,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Files uploaded successfully",
       files,
     });
   } catch (err) {
-    console.error("UPLOAD ERROR:", err);
+    console.error("UPLOAD MATERIALS ERROR:", err);
 
-    res.status(500).json({
-      error: err?.message || "File upload failed",
-    });
+    return sendControllerError(
+      res,
+      err,
+      "File upload failed"
+    );
   }
 }
 
@@ -53,11 +63,15 @@ async function getMaterials(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const files = await materialBL.getMaterials({
@@ -65,13 +79,17 @@ async function getMaterials(req, res) {
       userId,
     });
 
-    res.json({ files });
+    return res.json({
+      files,
+    });
   } catch (err) {
     console.error("GET MATERIALS ERROR:", err);
 
-    res.status(500).json({
-      error: err?.message || "Failed to get materials",
-    });
+    return sendControllerError(
+      res,
+      err,
+      "Failed to get materials"
+    );
   }
 }
 
@@ -81,11 +99,15 @@ async function getMaterialById(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const material = await materialBL.getMaterialById({
@@ -94,13 +116,23 @@ async function getMaterialById(req, res) {
       userId,
     });
 
-    res.json({ material });
+    return res.json({
+      material,
+    });
   } catch (err) {
     console.error("GET MATERIAL BY ID ERROR:", err);
 
-    res.status(500).json({
-      error: err?.message || "Failed to get material",
-    });
+    if (err?.message === "Material not found") {
+      return res.status(404).json({
+        error: "Material not found",
+      });
+    }
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to get material"
+    );
   }
 }
 
@@ -110,11 +142,15 @@ async function removeMaterial(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     await materialBL.removeMaterial({
@@ -123,16 +159,18 @@ async function removeMaterial(req, res) {
       userId,
     });
 
-    res.json({
+    return res.json({
       message: "File deleted successfully",
       id: req.params.id,
     });
   } catch (err) {
     console.error("REMOVE MATERIAL ERROR:", err);
 
-    res.status(500).json({
-      error: err?.message || "Failed to delete material",
-    });
+    return sendControllerError(
+      res,
+      err,
+      "Failed to delete material"
+    );
   }
 }
 

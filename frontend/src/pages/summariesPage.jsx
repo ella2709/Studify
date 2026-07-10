@@ -1,21 +1,24 @@
 import { useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { useGenerateSummary, useProjectSummaries } from "../services/summaryService";
+import { useGenerateSummary, useProjectSummaries, } from "../services/summaryService";
 import { safeFormatDate } from "../helpers/dateHelper";
 import messages from "../messages";
+import { useAiAccess } from "../authentication/aiAccessContext.jsx";
 
 function projectNameFromId(projectId) {
   return projectId
     .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
 function SummarizePage() {
   const { projectId } = useParams();
   const location = useLocation();
+  const { isAiBlocked } = useAiAccess();
 
-  const projectName = location.state?.projectName || projectNameFromId(projectId);
+  const projectName =
+    location.state?.projectName || projectNameFromId(projectId);
 
   const [instruction, setInstruction] = useState("");
   const [error, setError] = useState("");
@@ -24,15 +27,13 @@ function SummarizePage() {
   const summariesQuery = useProjectSummaries(projectId);
   const generateSummaryMutation = useGenerateSummary();
 
- const summariesHistory = useMemo(() => {
-  const summaries = summariesQuery.data || [];
+  const summariesHistory = useMemo(() => {
+    const summaries = summariesQuery.data || [];
 
-  if (!createdSummary?.id) {
-    return summaries;
-  }
+    if (!createdSummary?.id) return summaries;
 
-  return summaries.filter((summary) => summary.id !== createdSummary.id);
-}, [summariesQuery.data, createdSummary]);
+    return summaries.filter((summary) => summary.id !== createdSummary.id);
+  }, [summariesQuery.data, createdSummary]);
 
   const loading = generateSummaryMutation.isPending;
 
@@ -40,22 +41,24 @@ function SummarizePage() {
     if (!message) return "";
 
     if (message.includes("Missing summary instruction")) {
-      return "Please describe what you want to summarize.";
+      return messages.summarize.missingInstruction;
     }
 
     if (message.includes("No uploaded materials")) {
-      return "No study materials were found for this project. Please upload materials before generating a summary.";
+      return messages.summarize.noMaterials;
     }
 
     return message;
   }
 
   async function handleGenerateSummary() {
+    if (isAiBlocked) return;
+
     setError("");
     setCreatedSummary(null);
 
     if (!instruction.trim()) {
-      setError("Please describe what you want to summarize.");
+      setError(messages.summarize.missingInstruction);
       return;
     }
 
@@ -68,7 +71,9 @@ function SummarizePage() {
       setCreatedSummary(summary);
       setInstruction("");
     } catch (err) {
-      setError(getFriendlyError(err.message));
+      if (err.code !== "AI_LIMIT_REACHED") {
+        setError(getFriendlyError(err.message));
+      }
     }
   }
 
@@ -76,7 +81,7 @@ function SummarizePage() {
     const url = summary?.file?.downloadUrl;
 
     if (!url) {
-      setError("Summary file is not available for download.");
+      setError(messages.summarize.fileUnavailable);
       return;
     }
 
@@ -91,7 +96,8 @@ function SummarizePage() {
         className="breadcrumb"
         style={{ marginBottom: "0.5rem", flexShrink: 0 }}
       >
-        <ChevronLeft />{projectName}
+        <ChevronLeft />
+        {projectName}
       </Link>
 
       <div className="page-head" style={{ flexShrink: 0, marginBottom: "0.6rem" }}>
@@ -99,18 +105,36 @@ function SummarizePage() {
         <h1 className="page-title">{messages.pagePurposes.summary}</h1>
       </div>
 
+      {isAiBlocked && (
+        <div className="alert" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
+          <div>
+            <strong style={{ display: "block", marginBottom: "0.15rem" }}>
+              {messages.aiAccess.viewOnlyTitle}
+            </strong>
+            <span>{messages.aiAccess.summariesMessage}</span>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="alert" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
           <div>
             <strong style={{ display: "block", marginBottom: "0.15rem" }}>
-              Notice!
+              {messages.exams.notice}
             </strong>
             <span>{error}</span>
           </div>
         </div>
       )}
 
-      <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
+      <section
+        className="card card-pad"
+        style={{
+          marginBottom: "1rem",
+          flexShrink: 0,
+          opacity: isAiBlocked ? 0.72 : 1,
+        }}
+      >
         <h3 className="section-title" style={{ marginBottom: "0.5rem" }}>
           {messages.summarize.question}
         </h3>
@@ -118,39 +142,50 @@ function SummarizePage() {
         <div className="field" style={{ marginBottom: "0.5rem" }}>
           <textarea
             value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            placeholder="For example: summarize the main ideas from chapter 3..."
+            onChange={(event) => setInstruction(event.target.value)}
+            placeholder={
+              isAiBlocked
+                ? messages.aiAccess.summaryPlaceholder
+                : messages.summarize.examplePlaceholder
+            }
+            disabled={isAiBlocked}
             className="input-base"
-            style={{
-              minHeight: 64,
-              resize: "vertical",
-              lineHeight: 1.65,
-            }}
+            style={{ minHeight: 64, resize: "vertical", lineHeight: 1.65 }}
           />
         </div>
 
         <button
+          type="button"
           onClick={handleGenerateSummary}
-          disabled={loading}
+          disabled={loading || isAiBlocked}
           className="btn btn-primary btn-lg"
+          title={
+            isAiBlocked ? messages.aiAccess.unavailableTooltip : undefined
+          }
         >
-          {loading ? (
+          {isAiBlocked ? (
+            messages.aiAccess.unavailableButton
+          ) : loading ? (
             <>
               <span className="spinner" /> {messages.summarize.generating}
             </>
           ) : (
-            "Generate Summary"
+            messages.summarize.submit
           )}
         </button>
       </section>
 
       {createdSummary && (
-        <section className="card card-pad" style={{ marginBottom: "1rem", flexShrink: 0 }}>
+        <section
+          className="card card-pad"
+          style={{ marginBottom: "1rem", flexShrink: 0 }}
+        >
           <h2 className="section-title" style={{ marginBottom: "1rem" }}>
             {messages.summarize.generated}
           </h2>
 
           <button
+            type="button"
             onClick={() => downloadSummary(createdSummary)}
             className="file-row"
             style={{
@@ -166,13 +201,15 @@ function SummarizePage() {
               <div style={{ fontWeight: 700, marginBottom: "0.25rem" }}>
                 {createdSummary.title}
               </div>
-
               <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
-                Click to download · {safeFormatDate(createdSummary.createdAt)}
+                {messages.summarize.clickToDownload} ·{" "}
+                {safeFormatDate(createdSummary.createdAt)}
               </div>
             </div>
 
-            <span className="badge badge-success">Ready</span>
+            <span className="badge badge-success">
+              {messages.summarize.ready}
+            </span>
           </button>
         </section>
       )}
@@ -187,14 +224,17 @@ function SummarizePage() {
           minHeight: 0,
         }}
       >
-        <h2 className="section-title" style={{ marginBottom: "1rem", flexShrink: 0 }}>
-          Summary History
+        <h2
+          className="section-title"
+          style={{ marginBottom: "1rem", flexShrink: 0 }}
+        >
+          {messages.summarize.history}
         </h2>
 
         {summariesQuery.isLoading && (
           <div style={{ display: "grid", gap: "0.6rem" }}>
-            {[1, 2].map((i) => (
-              <div key={i} className="skeleton" style={{ height: 64 }} />
+            {[1, 2].map((item) => (
+              <div key={item} className="skeleton" style={{ height: 64 }} />
             ))}
           </div>
         )}
@@ -203,9 +243,11 @@ function SummarizePage() {
           {!summariesQuery.isLoading && summariesHistory.length === 0 && (
             <div className="empty-state">
               <div className="empty-icon">📝</div>
-              <h3 className="empty-title">No summaries yet</h3>
+              <h3 className="empty-title">{messages.summarize.noSummaries}</h3>
               <p className="empty-text">
-                {messages.summarize.firstSummary}
+                {isAiBlocked
+                  ? messages.aiAccess.noExistingSummaries
+                  : messages.summarize.firstSummary}
               </p>
             </div>
           )}
@@ -213,6 +255,7 @@ function SummarizePage() {
           <div style={{ display: "grid", gap: "0.7rem" }}>
             {summariesHistory.map((summary) => (
               <button
+                type="button"
                 key={summary.id}
                 onClick={() => downloadSummary(summary)}
                 className="file-row"
@@ -230,7 +273,7 @@ function SummarizePage() {
                   </div>
 
                   <div style={{ fontSize: "0.82rem", color: "var(--text-2)" }}>
-                    {summary.instruction || "Generated summary"} ·{" "}
+                    {summary.instruction || messages.summarize.generatedFallback} ·{" "}
                     {safeFormatDate(summary.updatedAt || summary.createdAt)}
                   </div>
                 </div>
@@ -252,12 +295,13 @@ function StatusBadge({ status }) {
     failed: { cls: "badge-warning", label: "Failed" },
   };
 
-  const s = map[status] || { cls: "badge-neutral", label: status || "Ready" };
+  const current = map[status] || {
+    cls: "badge-neutral",
+    label: status || messages.summarize.ready,
+  };
 
-  return <span className={`badge ${s.cls}`}>{s.label}</span>;
+  return <span className={`badge ${current.cls}`}>{current.label}</span>;
 }
-
-
 
 function ChevronLeft() {
   return (

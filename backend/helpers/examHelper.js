@@ -1,4 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const {
+  normalizeGeminiError,
+} = require("./geminiErrorHelper");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -7,22 +10,31 @@ function cleanJsonResponse(text) {
 }
 
 async function callGeminiJson(prompt) {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-
   try {
-    return JSON.parse(cleanJsonResponse(text));
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    try {
+      return JSON.parse(cleanJsonResponse(text));
+    } catch (error) {
+      console.error("Invalid Gemini JSON:", text);
+      throw new Error("AI returned invalid JSON");
+    }
   } catch (error) {
-    console.error("Invalid Gemini JSON:", text);
-    throw new Error("AI returned invalid JSON");
+    console.error("GEMINI EXAM ERROR:", error);
+
+    throw normalizeGeminiError(error);
   }
 }
 
 function getLanguageName(language) {
   if (language === "he") return "Hebrew";
   if (language === "en") return "English";
+
   return language || "English";
 }
 
@@ -54,7 +66,9 @@ Create an exam ONLY from the retrieved study material excerpts below.
 The exam language MUST be ${languageName}.
 All questions, answers, options, model answers, rubrics and titles MUST be in ${languageName} only.
 
-Return ONLY valid JSON. Do not add markdown. Do not add explanations.
+Return ONLY valid JSON.
+Do not add markdown.
+Do not add explanations.
 
 Exam type: ${type}
 Number of questions: ${numberOfQuestions}
@@ -71,7 +85,12 @@ JSON structure:
       "id": "q1",
       "type": "${type}",
       "question": "string",
-      "options": ["A. option", "B. option", "C. option", "D. option"],
+      "options": [
+        "A. option",
+        "B. option",
+        "C. option",
+        "D. option"
+      ],
       "correctAnswer": "A. option",
       "modelAnswer": "string",
       "rubric": "string"
@@ -99,7 +118,8 @@ You are an academic exam checker.
 Check the user's answers based on the exam questions, correct answers, model answers and rubrics.
 All feedback MUST be in ${languageName} only.
 
-Return ONLY valid JSON. Do not add markdown.
+Return ONLY valid JSON.
+Do not add markdown.
 
 Exam:
 ${JSON.stringify(exam, null, 2)}

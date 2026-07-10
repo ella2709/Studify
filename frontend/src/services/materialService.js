@@ -2,10 +2,38 @@ import { API } from "../api";
 import { getAuthHeaders } from "../authentication/authHeaders";
 
 async function handleResponse(res) {
-  const data = await res.json();
+  const text = await res.text();
+
+  let data = {};
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = {};
+  }
 
   if (!res.ok) {
-    throw new Error(data.error || "Request failed");
+    const error = new Error(
+      data.error || data.message || "Request failed"
+    );
+
+    error.code = data.code || null;
+    error.status = res.status;
+
+    if (error.code === "AI_LIMIT_REACHED") {
+      window.dispatchEvent(
+        new CustomEvent("ai-limit-reached", {
+          detail: {
+            message:
+              data.error ||
+              data.message ||
+              "AI features are temporarily unavailable.",
+          },
+        })
+      );
+    }
+
+    throw error;
   }
 
   return data;
@@ -17,17 +45,23 @@ export async function getMaterials(projectId) {
   }
 
   const res = await fetch(
-    `${API.GET_MATERIALS}?projectId=${encodeURIComponent(projectId)}`,
+    `${API.GET_MATERIALS}?projectId=${encodeURIComponent(
+      projectId
+    )}`,
     {
       headers: await getAuthHeaders(),
     }
   );
 
   const data = await handleResponse(res);
+
   return data.files || [];
 }
 
-export async function uploadMaterials(projectId, files) {
+export async function uploadMaterials(
+  projectId,
+  files
+) {
   if (!projectId) {
     throw new Error("Missing projectId");
   }
@@ -40,17 +74,24 @@ export async function uploadMaterials(projectId, files) {
 
   formData.append("projectId", projectId);
 
-  const res = await fetch(API.UPLOAD_MATERIALS, {
-    method: "POST",
-    headers: await getAuthHeaders(true),
-    body: formData,
-  });
+  const res = await fetch(
+    API.UPLOAD_MATERIALS,
+    {
+      method: "POST",
+      headers: await getAuthHeaders(true),
+      body: formData,
+    }
+  );
 
   const data = await handleResponse(res);
+
   return data.files || [];
 }
 
-export async function deleteMaterial(projectId, materialId) {
+export async function deleteMaterial(
+  projectId,
+  materialId
+) {
   if (!projectId) {
     throw new Error("Missing projectId");
   }
@@ -60,7 +101,9 @@ export async function deleteMaterial(projectId, materialId) {
   }
 
   const res = await fetch(
-    `${API.GET_MATERIALS}/${materialId}?projectId=${encodeURIComponent(projectId)}`,
+    `${API.GET_MATERIALS}/${materialId}?projectId=${encodeURIComponent(
+      projectId
+    )}`,
     {
       method: "DELETE",
       headers: await getAuthHeaders(),

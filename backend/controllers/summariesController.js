@@ -1,8 +1,12 @@
 const summariesBL = require("../BLs/summaryBL");
 
+const { sendControllerError, } = require("../helpers/geminiErrorHelper");
+
 function getProjectId(req) {
   const projectId =
-    req.body?.projectId || req.query?.projectId || req.params?.projectId;
+    req.body?.projectId ||
+    req.query?.projectId ||
+    req.params?.projectId;
 
   if (!projectId || !projectId.trim()) {
     return null;
@@ -21,11 +25,15 @@ async function generateSummary(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const summary = await summariesBL.generateSummary({
@@ -34,13 +42,17 @@ async function generateSummary(req, res) {
       userId,
     });
 
-    res.status(201).json({ summary });
+    return res.status(201).json({
+      summary,
+    });
   } catch (err) {
     console.error("GENERATE SUMMARY ERROR:", err);
 
-    res.status(500).json({
-      error: err?.message || "Summary generation failed",
-    });
+    return sendControllerError(
+      res,
+      err,
+      "Summary generation failed"
+    );
   }
 }
 
@@ -50,11 +62,15 @@ async function getProjectSummaries(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const summaries = await summariesBL.getProjectSummaries({
@@ -62,11 +78,17 @@ async function getProjectSummaries(req, res) {
       userId,
     });
 
-    res.json({ summaries });
-  } catch (err) {
-    res.status(500).json({
-      error: err?.message || "Failed to get summaries",
+    return res.json({
+      summaries,
     });
+  } catch (err) {
+    console.error("GET PROJECT SUMMARIES ERROR:", err);
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to get summaries"
+    );
   }
 }
 
@@ -76,11 +98,15 @@ async function getSummaryById(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     const summary = await summariesBL.getSummaryById({
@@ -89,11 +115,23 @@ async function getSummaryById(req, res) {
       userId,
     });
 
-    res.json({ summary });
-  } catch (err) {
-    res.status(404).json({
-      error: err?.message || "Summary not found",
+    return res.json({
+      summary,
     });
+  } catch (err) {
+    console.error("GET SUMMARY BY ID ERROR:", err);
+
+    if (err?.message === "Summary not found") {
+      return res.status(404).json({
+        error: "Summary not found",
+      });
+    }
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to get summary"
+    );
   }
 }
 
@@ -103,11 +141,15 @@ async function deleteSummary(req, res) {
     const projectId = getProjectId(req);
 
     if (!userId) {
-      return res.status(401).json({ error: "Missing userId" });
+      return res.status(401).json({
+        error: "Missing userId",
+      });
     }
 
     if (!projectId) {
-      return res.status(400).json({ error: "Missing projectId" });
+      return res.status(400).json({
+        error: "Missing projectId",
+      });
     }
 
     await summariesBL.deleteSummary({
@@ -116,11 +158,17 @@ async function deleteSummary(req, res) {
       userId,
     });
 
-    res.json({ deletedSummaryId: req.params.summaryId });
-  } catch (err) {
-    res.status(500).json({
-      error: err?.message || "Failed to delete summary",
+    return res.json({
+      deletedSummaryId: req.params.summaryId,
     });
+  } catch (err) {
+    console.error("DELETE SUMMARY ERROR:", err);
+
+    return sendControllerError(
+      res,
+      err,
+      "Failed to delete summary"
+    );
   }
 }
 

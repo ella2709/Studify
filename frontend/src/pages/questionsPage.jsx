@@ -1,23 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import { askQuestion, createQuestionChat, useQuestionChats, getQuestionChatMessages, deleteQuestionChat } from "../services/questionService.js";
+import { askQuestion, createQuestionChat, useQuestionChats, getQuestionChatMessages, deleteQuestionChat, } from "../services/questionService.js";
 import messages from "../messages.js";
 import ChatMessages from "../components/chatMessages.jsx";
 import ConfirmDialog from "../components/confirmDialog.jsx";
 import CreateChatDialog from "../components/createChatDialog.jsx";
 import { ChevronLeft } from "../components/iconsAndButtons.jsx";
+import { useAiAccess } from "../authentication/aiAccessContext.jsx";
 
 function projectNameFromId(projectId) {
   return projectId
     .split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
 function QuestionsPage() {
   const { projectId } = useParams();
   const location = useLocation();
-  const projectName = location.state?.projectName || projectNameFromId(projectId);
+  const { isAiBlocked } = useAiAccess();
+
+  const projectName =
+    location.state?.projectName || projectNameFromId(projectId);
 
   const [question, setQuestion] = useState("");
   const { data: chatsData, isLoading: loadingChats, refetch: refetchChats } =
@@ -38,6 +42,7 @@ function QuestionsPage() {
   useEffect(() => {
     setSelectedChat(null);
     setChatMessages([]);
+    setQuestion("");
     setError("");
   }, [projectId]);
 
@@ -47,11 +52,20 @@ function QuestionsPage() {
     }
   }, [chatMessages, loading]);
 
+  useEffect(() => {
+    if (isAiBlocked) {
+      setIsCreateChatDialogOpen(false);
+      setQuestion("");
+    }
+  }, [isAiBlocked]);
+
   async function handleCreateChat(title) {
+    if (isAiBlocked) return;
+
     setError("");
 
     if (!title.trim()) {
-      setError("Please enter a chat title");
+      setError(messages.askAi.missingChatTitle);
       return;
     }
 
@@ -62,7 +76,7 @@ function QuestionsPage() {
       setIsCreateChatDialogOpen(false);
       await refetchChats();
     } catch (err) {
-      setError(err.message || "Failed to create chat");
+      setError(err.message || messages.askAi.createChatFailed);
     }
   }
 
@@ -76,17 +90,19 @@ function QuestionsPage() {
       const data = await getQuestionChatMessages(chat.id, projectId);
       setChatMessages(data.messages || []);
     } catch (err) {
-      setError(err.message || "Failed to load chat messages");
+      setError(err.message || messages.askAi.loadMessagesFailed);
     } finally {
       setLoading(false);
     }
   }
 
   async function handleAskAi() {
+    if (isAiBlocked) return;
+
     setError("");
 
     if (!selectedChat) {
-      setError("Please choose or create a chat first");
+      setError(messages.askAi.chooseChatFirst);
       return;
     }
 
@@ -97,13 +113,9 @@ function QuestionsPage() {
 
     const currentQuestion = question.trim();
 
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        role: "user",
-        type: "text",
-        content: currentQuestion,
-      },
+    setChatMessages((previous) => [
+      ...previous,
+      { role: "user", type: "text", content: currentQuestion },
     ]);
 
     setQuestion("");
@@ -117,16 +129,15 @@ function QuestionsPage() {
         projectId
       );
 
-      setChatMessages((prev) => [
-        ...prev,
-        result.message,
-      ]);
+      setChatMessages((previous) => [...previous, result.message]);
 
       if (result.success !== false) {
         await refetchChats();
       }
     } catch (err) {
-      setError(err.message || messages.askAi.error);
+      if (err.code !== "AI_LIMIT_REACHED") {
+        setError(err.message || messages.askAi.error);
+      }
     } finally {
       setLoading(false);
     }
@@ -137,7 +148,6 @@ function QuestionsPage() {
 
     try {
       setDeleteLoading(true);
-
       await deleteQuestionChat(chatToDelete.id, projectId);
 
       if (selectedChat?.id === chatToDelete.id) {
@@ -148,7 +158,7 @@ function QuestionsPage() {
       setChatToDelete(null);
       await refetchChats();
     } catch (err) {
-      setError(err.message || "Failed to delete chat");
+      setError(err.message || messages.askAi.deleteChatFailed);
     } finally {
       setDeleteLoading(false);
     }
@@ -156,7 +166,7 @@ function QuestionsPage() {
 
   function openCreateChatDialog() {
     setError("");
-    setIsCreateChatDialogOpen(true);
+    if (!isAiBlocked) setIsCreateChatDialogOpen(true);
   }
 
   return (
@@ -169,6 +179,17 @@ function QuestionsPage() {
       >
         <ChevronLeft /> {projectName}
       </Link>
+
+      {isAiBlocked && (
+        <div className="alert" style={{ marginBottom: "0.85rem", flexShrink: 0 }}>
+          <div>
+            <strong style={{ display: "block", marginBottom: "0.15rem" }}>
+              {messages.aiAccess.viewOnlyTitle}
+            </strong>
+            <span>{messages.aiAccess.questionsMessage}</span>
+          </div>
+        </div>
+      )}
 
       <div className="chat-shell">
         <main className="chat-main">
@@ -189,7 +210,7 @@ function QuestionsPage() {
                 whiteSpace: "nowrap",
               }}
             >
-              {selectedChat ? selectedChat.title : "Ask AI"}
+              {selectedChat ? selectedChat.title : messages.askAi.title}
             </h2>
 
             <p
@@ -215,24 +236,31 @@ function QuestionsPage() {
             >
               <div
                 className="empty-state"
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  maxWidth: 380,
-                }}
+                style={{ border: "none", background: "transparent", maxWidth: 380 }}
               >
                 <div className="empty-icon">💬</div>
                 <h3 className="empty-title">{messages.askAi.startConversation}</h3>
                 <p className="empty-text">
-                  {messages.askAi.chat}
+                  {isAiBlocked
+                    ? messages.aiAccess.questionsEmptyMessage
+                    : messages.askAi.chat}
                 </p>
 
                 <button
+                  type="button"
                   onClick={openCreateChatDialog}
+                  disabled={isAiBlocked}
                   className="btn btn-primary"
                   style={{ marginTop: "1rem" }}
+                  title={
+                    isAiBlocked
+                      ? messages.aiAccess.unavailableTooltip
+                      : undefined
+                  }
                 >
-                  {messages.askAi.newChat}
+                  {isAiBlocked
+                    ? messages.aiAccess.unavailableButton
+                    : messages.askAi.newChat}
                 </button>
               </div>
             </div>
@@ -243,10 +271,7 @@ function QuestionsPage() {
                   <ChatMessages messages={chatMessages} />
 
                   {loading && (
-                    <div
-                      className="bubble-row ai"
-                      style={{ marginTop: "0.9rem" }}
-                    >
+                    <div className="bubble-row ai" style={{ marginTop: "0.9rem" }}>
                       <div className="bubble bubble-ai">
                         <span className="typing">
                           <span />
@@ -272,22 +297,41 @@ function QuestionsPage() {
                 <input
                   type="text"
                   value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && !loading && handleAskAi()
+                  onChange={(event) => setQuestion(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" &&
+                      !loading &&
+                      !isAiBlocked
+                    ) {
+                      handleAskAi();
+                    }
+                  }}
+                  placeholder={
+                    isAiBlocked
+                      ? messages.aiAccess.questionsPlaceholder
+                      : messages.askAi.questionPlaceholder
                   }
-                  placeholder={messages.askAi.questionPlaceholder}
+                  disabled={isAiBlocked}
                   className="input-base"
                   style={{ flex: 1 }}
                 />
 
                 <button
+                  type="button"
                   onClick={handleAskAi}
-                  disabled={loading}
+                  disabled={loading || isAiBlocked}
                   className="btn btn-primary"
                   style={{ flexShrink: 0 }}
+                  title={
+                    isAiBlocked
+                      ? messages.aiAccess.unavailableTooltip
+                      : undefined
+                  }
                 >
-                  {messages.askAi.submit}
+                  {isAiBlocked
+                    ? messages.aiAccess.unavailableButton
+                    : messages.askAi.submit}
                 </button>
               </div>
             </>
@@ -318,11 +362,18 @@ function QuestionsPage() {
           </div>
 
           <button
+            type="button"
             onClick={openCreateChatDialog}
+            disabled={isAiBlocked}
             className="btn btn-primary btn-block"
             style={{ marginBottom: "0.9rem", flexShrink: 0 }}
+            title={
+              isAiBlocked ? messages.aiAccess.unavailableTooltip : undefined
+            }
           >
-            + New Chat
+            {isAiBlocked
+              ? messages.aiAccess.unavailableButton
+              : messages.askAi.newChat}
           </button>
 
           {error && !selectedChat && (
@@ -336,8 +387,8 @@ function QuestionsPage() {
 
           <div className="chat-list">
             {loadingChats &&
-              [1, 2, 3].map((i) => (
-                <div key={i} className="skeleton" style={{ height: 40 }} />
+              [1, 2, 3].map((item) => (
+                <div key={item} className="skeleton" style={{ height: 40 }} />
               ))}
 
             {!loadingChats && chats.length === 0 && (
@@ -358,10 +409,12 @@ function QuestionsPage() {
             {chats.map((chat) => (
               <div
                 key={chat.id}
-                className={`chat-item${selectedChat?.id === chat.id ? " active" : ""
-                  }`}
+                className={`chat-item${
+                  selectedChat?.id === chat.id ? " active" : ""
+                }`}
               >
                 <button
+                  type="button"
                   className="chat-item__label"
                   onClick={() => handleSelectChat(chat)}
                   title={chat.title}
@@ -370,10 +423,11 @@ function QuestionsPage() {
                 </button>
 
                 <button
+                  type="button"
                   className="chat-item__del"
-                  title="Delete chat"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  title={messages.actions.delete}
+                  onClick={(event) => {
+                    event.stopPropagation();
                     setChatToDelete(chat);
                   }}
                 >
@@ -386,7 +440,7 @@ function QuestionsPage() {
       </div>
 
       <CreateChatDialog
-        open={isCreateChatDialogOpen}
+        open={isCreateChatDialogOpen && !isAiBlocked}
         chatType="question"
         error={error}
         onCancel={() => {
@@ -398,10 +452,10 @@ function QuestionsPage() {
 
       <ConfirmDialog
         open={!!chatToDelete}
-        title="Delete chat?"
-        message={`Are you sure you want to delete "${chatToDelete?.title}"? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={messages.askAi.deleteChatTitle}
+        message={messages.askAi.deleteChatMessage(chatToDelete?.title)}
+        confirmText={messages.actions.delete}
+        cancelText={messages.actions.cancel}
         onConfirm={handleDeleteChat}
         onCancel={() => setChatToDelete(null)}
         loading={deleteLoading}
@@ -409,7 +463,5 @@ function QuestionsPage() {
     </div>
   );
 }
-
-
 
 export default QuestionsPage;
