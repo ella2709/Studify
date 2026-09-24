@@ -83,6 +83,10 @@ async function askQuestion({ chatId, question, projectId, userId }) {
     5
   );
 
+  if (relevantChunks.length < MIN_RELEVANT_CHUNKS) {
+    return buildTemporaryAiMessage("I couldn't find enough information about this topic in your uploaded study materials. Please upload additional study materials related to this topic and try again.");
+  }
+
   const answer = await generateAnswerFromContext(cleanQuestion, relevantChunks);
 
   if (!answer || !answer.trim()) {
@@ -91,9 +95,6 @@ async function askQuestion({ chatId, question, projectId, userId }) {
     );
   }
   
-  if (relevantChunks.length < MIN_RELEVANT_CHUNKS) {
-    return buildTemporaryAiMessage("I couldn't find enough information about this topic in your uploaded study materials. Please upload additional study materials related to this topic and try again.");
-  }
 
   if (answer.trim() === INSUFFICIENT_INFORMATION_MESSAGE) {
     return buildTemporaryAiMessage(answer.trim());
